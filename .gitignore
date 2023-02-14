@@ -1,0 +1,9 @@
+data/train
+data/valid
+data/test
+
+Swim Transformer/save_model
+Swim Transformer/__pycache__
+
+ViT/save_model
+ViT/__pycache__
