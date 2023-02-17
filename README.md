@@ -26,7 +26,7 @@
 ```
 
 ## 訓練
-### 指令注視
+### 指令註釋
 ` python ViT/main.py -e 訓練幾次 -b 批次數 -P 看子圖片的大小 `
 
 ` python "Swim Transformer"/main.py -e 訓練幾次 -b 批次數 -P 看子圖片的大小 `
