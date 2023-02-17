@@ -1,5 +1,6 @@
 # GITM
 ## File Directory
++ 需要額外下載data裡面的資料:https://drive.google.com/file/d/1yMob-Mp87ORs56fp61rmt5KfEFz9zLNd/view?usp=share_link
 ```
 |--- data
 |   |--- 2018.csv
@@ -25,6 +26,7 @@
 ```
 
 ## 訓練
+### 指令注視
 ` python ViT/main.py -e 訓練幾次 -b 批次數 -P 看子圖片的大小 `
 
 ` python "Swim Transformer"/main.py -e 訓練幾次 -b 批次數 -P 看子圖片的大小 `
