@@ -3,10 +3,13 @@
 + 需要額外下載data裡面的資料:https://drive.google.com/file/d/1yMob-Mp87ORs56fp61rmt5KfEFz9zLNd/view?usp=share_link
 ```
 |--- data
-|   |--- 2018.csv
-|   |--- 2019.csv
-|   |--- 2020.csv
-|   |--- 2021.csv
+|   |--- train
+|      |--- 2018.csv
+|      |--- 2019.csv
+|   |--- valid
+|      |--- 2020.csv
+|   |--- test
+|      |--- 2021.csv
 |
 |--- ViT
 |   |--- dataloader.py

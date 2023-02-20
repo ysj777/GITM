@@ -16,10 +16,10 @@ def same_seeds(seed):
     torch.backends.cudnn.benchmark = False
     torch.backends.cudnn.deterministic = True
 
-def train_model(dataloader, valid_dataloader, in_dim, out_dim, batch_size, patch_size, EPOCH, path_save_model, device):
+def train_model(dataloader, valid_dataloader, in_dim, out_dim, batch_size, patch_size, input_history, EPOCH, path_save_model, device):
     same_seeds(1234)
     device = torch.device(device)
-    model = ViT(in_dim, out_dim, batch_size, device, patch_size).to(device)
+    model = ViT(in_dim, out_dim, batch_size, device, patch_size, input_history).to(device)
     print(model)
 
     optimizer = torch.optim.AdamW(model.parameters(), lr=5e-3)
