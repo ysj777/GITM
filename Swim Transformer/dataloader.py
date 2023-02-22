@@ -6,9 +6,11 @@ from torch.utils.data import DataLoader
 from sklearn.preprocessing import StandardScaler,MinMaxScaler
 
 class TECDataset:
-    def __init__(self, path, mode = 'maxmin', window_size = 24) -> None:
+    def __init__(self, path, mode = 'maxmin', window_size = 24, patch_size = 3, input_history = 1) -> None:
         self.path = path
         self.window_size = window_size
+        self.patch_size = patch_size * 8
+        self.input_history = input_history
         self.val, self.val2 = 0, 0
         self.mode = "None"
         self.tec_data = self.get_data()
@@ -53,24 +55,47 @@ class TECDataset:
     #Create a dataset that fits the model
     def create_dataset(self) :
         _input, target = [], []
-        for idx in range(len(self.tec_data)):
+        for idx in range(self.input_history-1, len(self.tec_data)):
             if idx + self.window_size>= len(self.tec_data):
                 break
-            word = []
-            target_word = []
-            for longitude in range(71):
-                latitude = []
-                target_latitude = []
-                for lat in range(72):
-                    latitude.append(self.tec_data[idx][longitude*72 + lat])
-                    target_latitude.append(self.tec_data[idx + self.window_size][longitude*72 + lat])
-                word.append(latitude)
-                target_word.append(target_latitude)
-            word.append([0 for _ in range(72)])
-            target_word.append([0 for _ in range(72)])
-            _input.append([word])
-            target.append([target_word])
+            world_history = []
+            if _input:
+                world_history = _input[-1][1:]
+                world_history.append(self.create_input(idx))
+            else:
+                for i in range(self.input_history):
+                    world_history.append(self.create_input(i))
+            target_world = self.create_target(idx)
+            _input.append(world_history)
+            target.append(target_world)
         return np.array(_input), np.array(target)
+
+    def create_input(self, idx):
+        world = []
+        for longitude in range(71):
+            latitude = []
+            for lat in range(72):
+                latitude.append(self.tec_data[idx][longitude*72 + lat])
+            world.append(latitude)
+        world.append([0 for _ in range(72)])
+        return world
+
+    def create_target(self, idx):
+        #[9, 576]
+        patch_count = 72*72//(self.patch_size*self.patch_size)
+        target_world = [[]for _ in range(patch_count)]
+        
+        for longitude in range(71):
+            for lat in range(72):
+                patch_idx = (longitude//self.patch_size)*(72//self.patch_size) + lat//self.patch_size
+                target_world[patch_idx].append(self.tec_data[idx + self.window_size][longitude*72 + lat])
+        
+        # padding zero to the last latitude
+        for patch_idx in range(patch_count - (72//self.patch_size), patch_count): #padding zero to the final latitude
+            for _ in range(self.patch_size): 
+                target_world[patch_idx].append(0)
+        # print(np.array(target_world).shape[:])
+        return target_world
 
     def __len__(self):
         return len(self.target)
@@ -82,9 +107,11 @@ class TECDataset:
 
 
 if __name__ == '__main__':
-    dataset = TECDataset('../data/train', mode = 'None', window_size = 24)
+    dataset = TECDataset('../data/valid', mode = 'None', window_size = 24, input_history = 6)
     dataloader = DataLoader(dataset, batch_size=24)
     for data in dataloader:
         print(np.shape(data[0]))
+        print(np.shape(data[1]))
         print(data)
+        input()
         break
