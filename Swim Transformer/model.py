@@ -12,10 +12,14 @@ class Swin(nn.Module):
         self.batch_size = batch_size
         self.patch_size = patch_size
         self.input_history = input_history
-        self.hidden_dim = 768
+        self.hidden_dim = 288
         # self.fc_input = nn.Linear(self.in_dim, self.hidden_dim, device=device)
         # self.fc_output = nn.Linear(self.hidden_dim, self.out_dim, device=device)
-        self.configuration = SwinConfig(image_size = 72, num_channels = self.input_history, patch_size = self.patch_size, window_size = 3)
+        self.configuration = SwinConfig(image_size = 72, 
+                                        num_channels = self.input_history, 
+                                        patch_size = self.patch_size, 
+                                        embed_dim = self.hidden_dim//8,
+                                        window_size = 3, )
         self.model = SwinModel(self.configuration)
         self.decoder = nn.Linear(self.hidden_dim, out_dim, device=device)
     
