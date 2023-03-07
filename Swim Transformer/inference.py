@@ -2,9 +2,9 @@ import torch
 import numpy as np
 from model import Swin
 
-def inference(best_model, in_dim, out_dim, test_dataloader, patch_size, input_history, device, mode, val, val2):
+def inference(best_model, in_dim, out_dim, test_dataloader, patch_size, depths, input_history, device, mode, val, val2):
     tec_tar, tec_pred = [], []
-    model = Swin(in_dim, out_dim, 1, device, patch_size, input_history).to(device)
+    model = Swin(in_dim, out_dim, 1, device, patch_size, depths, input_history).to(device)
     model.load_state_dict(torch.load('save_model/'+ best_model))
     model.eval()
     total_rmse, step = 0, 0

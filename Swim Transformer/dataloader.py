@@ -6,10 +6,10 @@ from torch.utils.data import DataLoader
 from sklearn.preprocessing import StandardScaler,MinMaxScaler
 
 class TECDataset:
-    def __init__(self, path, mode = 'maxmin', window_size = 24, patch_size = 3, input_history = 1) -> None:
+    def __init__(self, path, mode = 'maxmin', window_size = 24, patch_size = 3, input_history = 1, depths_len = 3) -> None:
         self.path = path
         self.window_size = window_size
-        self.patch_size = patch_size * 8
+        self.patch_size = patch_size * (2**depths_len)
         self.input_history = input_history
         self.val, self.val2 = 0, 0
         self.mode = "None"
@@ -81,7 +81,7 @@ class TECDataset:
         return world
 
     def create_target(self, idx):
-        #[9, 576]
+        #target_size = [9, 576]
         patch_count = 72*72//(self.patch_size*self.patch_size)
         target_world = [[]for _ in range(patch_count)]
         

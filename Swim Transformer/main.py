@@ -15,28 +15,30 @@ def main(
     device = 'cpu',
     path_save_model = 'save_model/',
 ):
-    train_dataset = TECDataset('../data/train', mode = mode, window_size = window_size, patch_size = patch_size, input_history = input_history)
+    depths = [2, 2, 2]
+    train_dataset = TECDataset('../data/train', mode = mode, window_size = window_size, patch_size = patch_size, input_history = input_history, depths_len = len(depths)-1)
     train_dataloader = DataLoader(train_dataset, batch_size = batch_size, drop_last = True)
-    valid_dataset = TECDataset('../data/valid', mode = mode, window_size = window_size, patch_size = patch_size, input_history = input_history)
+    valid_dataset = TECDataset('../data/valid', mode = mode, window_size = window_size, patch_size = patch_size, input_history = input_history, depths_len = len(depths)-1)
     valid_dataloader = DataLoader(valid_dataset, batch_size = batch_size, drop_last=True, shuffle = False)
-    test_dataset = TECDataset('../data/test', mode = mode, window_size = window_size, patch_size = patch_size, input_history = input_history)
+    test_dataset = TECDataset('../data/test', mode = mode, window_size = window_size, patch_size = patch_size, input_history = input_history, depths_len = len(depths)-1)
     test_dataloader = DataLoader(test_dataset, batch_size = 1, shuffle = False)
     print(len(train_dataloader), len(valid_dataloader), len(test_dataloader))
     print(train_dataset.mode)
     print('done\n')
 
-    in_dim, out_dim = 72*72, patch_size*patch_size*8*8
+    in_dim, out_dim = 72*72, patch_size*patch_size* (2**(len(depths)-1))* (2**(len(depths)-1))
     model = train_model(train_dataloader, 
                         valid_dataloader,
                         in_dim, 
                         out_dim, 
                         batch_size=batch_size, 
                         patch_size=patch_size, 
+                        depths = depths,
                         input_history = input_history,
                         EPOCH = epoch, 
                         path_save_model = path_save_model, 
                         device = device)    
-    inference(model, in_dim, out_dim, test_dataloader, patch_size, input_history, device, mode, train_dataset.val, train_dataset.val2)
+    inference(model, in_dim, out_dim, test_dataloader, patch_size, depths, input_history, device, mode, train_dataset.val, train_dataset.val2)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()

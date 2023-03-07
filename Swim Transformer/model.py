@@ -4,7 +4,7 @@ import torch
 from transformers import SwinConfig, SwinModel
 
 class Swin(nn.Module):
-    def __init__(self, in_dim, out_dim, batch_size, device, patch_size, input_history, num_layers=5, dropout=0.3) -> None:
+    def __init__(self, in_dim, out_dim, batch_size, device, patch_size, depths, input_history, num_layers=5, dropout=0.3) -> None:
         super(Swin, self).__init__()
         self.device = device
         self.in_dim = in_dim
@@ -18,7 +18,8 @@ class Swin(nn.Module):
         self.configuration = SwinConfig(image_size = 72, 
                                         num_channels = self.input_history, 
                                         patch_size = self.patch_size, 
-                                        embed_dim = self.hidden_dim//8,
+                                        embed_dim = self.hidden_dim//(2**(len(depths)-1)),
+                                        depths = depths,
                                         window_size = 3, )
         self.model = SwinModel(self.configuration)
         self.decoder = nn.Linear(self.hidden_dim, out_dim, device=device)
@@ -28,6 +29,7 @@ class Swin(nn.Module):
         # print(output['last_hidden_state'].shape[:])
         output = self.decoder(output['last_hidden_state'])
         # print(output.shape[:])
+        # input()
         return output
         
 if __name__ == '__main__':
