@@ -19,9 +19,8 @@ def inference(best_model, in_dim, out_dim, test_dataloader, patch_size, depths, 
 
 def reduction(pred, tar, mode, val, val2):
     if mode == 'maxmin':
-        for i in range(len(pred)):
-            pred[i] = pred[i]*(val-val2)+val2
-            tar[i] = tar[i]*(val-val2)+val2
+        pred = pred*(val-val2)+val2
+        tar = tar*(val-val2)+val2
     elif mode == 'z_score':
         for i in range(len(pred)):
             pred[i] = round(pred[i]*val+val2 ,2)

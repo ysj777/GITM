@@ -11,7 +11,7 @@ def main(
     patch_size = 3,
     target_hour = 24,
     input_history = 1,
-    mode = 'None',
+    mode = 'maxmin',
     device = 'cpu',
     path_save_model = 'save_model/',
 ):
@@ -47,7 +47,7 @@ if __name__ == '__main__':
     parser.add_argument('--patch_size', '-p', type=int, default=3)
     parser.add_argument('--target_hour', '-t', type=int, default=24)
     parser.add_argument('--input_history', '-i', type=int, default=1)
-    parser.add_argument('--mode', '-m', type=str, default='None')
+    parser.add_argument('--mode', '-m', type=str, default='maxmin')
     args = parser.parse_args()
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     print(device)

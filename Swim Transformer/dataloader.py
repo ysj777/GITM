@@ -24,11 +24,10 @@ class TECDataset:
     
     #Let the data go through normalization
     def maxmin(self) :
-        ma = max(self.tec_data)
-        mi = min(self.tec_data)
-        min_max_scaler = MinMaxScaler()
-        self.tec_data = min_max_scaler.fit_transform(self.tec_data)
-        return ma[0], mi[0]
+        max_tec = 500
+        min_tec = 0
+        self.tec_data = np.array(self.tec_data) / max_tec
+        return max_tec, min_tec
 
     #Let the data go through standardization
     def z_scores(self) :
@@ -107,7 +106,7 @@ class TECDataset:
 
 
 if __name__ == '__main__':
-    dataset = TECDataset('../data/valid', mode = 'None', target_hour = 4, input_history = 1)
+    dataset = TECDataset('../data/valid', mode = 'maxmin', target_hour = 4, input_history = 1)
     dataloader = DataLoader(dataset, batch_size=24)
     for data in dataloader:
         print(np.shape(data[0]))
