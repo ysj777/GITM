@@ -35,7 +35,7 @@ def train_model(dataloader, valid_dataloader, in_dim, out_dim, batch_size, patch
             for param in model.parameters(): param.grad = None
             b_input, b_target = tuple(b.to(device) for b in batch[:2])
             # b_information = batch[3].to(device)
-            output = model(b_input)
+            output = model(b_input, b_target)
             
             loss = torch.sqrt(mse(output, b_target))
             loss.backward()
