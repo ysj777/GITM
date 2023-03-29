@@ -11,7 +11,7 @@ def main(
     batch_size = 32,
     patch_size = 12,
     target_hour = 24,
-    input_history = 6,
+    input_history = 1,
     mode = 'None',
     device = 'cpu',
     path_save_model = 'save_model/',
@@ -26,7 +26,7 @@ def main(
     print(train_dataset.mode)
     print('done\n')
 
-    in_dim, out_dim = 72*72, patch_size*patch_size
+    in_dim, out_dim = 72, patch_size*patch_size
     model = train_model(train_dataloader, 
                         valid_dataloader,
                         in_dim, 
@@ -45,7 +45,7 @@ if __name__ == '__main__':
     parser.add_argument('--batch_size', '-b', type=int, default=32)
     parser.add_argument('--patch_size', '-p', type=int, default=12)
     parser.add_argument('--target_hour', '-t', type=int, default=24)
-    parser.add_argument('--input_history', '-i', type=int, default=6)
+    parser.add_argument('--input_history', '-i', type=int, default=1)
     parser.add_argument('--mode', '-m', type=str, default='None')
     args = parser.parse_args()
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
