@@ -12,7 +12,7 @@ def inference(best_model, in_dim, out_dim, test_dataloader, patch_size, depths, 
         b_input, b_target = tuple(b.to(device) for b in batch[:2])
         # b_information = batch[3].to(device)
         # b_time = tuple(b.numpy() for b in batch[2])
-        output = model(b_input)
+        output = model(b_input, b_target)
         rmse = reduction(np.array(output.clone().detach().cpu()), np.array(b_target.clone().detach().cpu()), mode, val, val2)
         total_rmse += rmse
     print("Root Mean Square Error:", total_rmse/step)

@@ -1,7 +1,7 @@
 import torch.nn as nn
 import torch.nn.functional as F
 import torch
-from transformers import SwinConfig, SwinModel
+from transformers import SwinConfig, SwinModel, Swinv2Config, Swinv2Model
 
 class Swin(nn.Module):
     def __init__(self, in_dim, out_dim, batch_size, device, patch_size, depths, input_history, num_layers=5, dropout=0.3) -> None:
@@ -12,22 +12,24 @@ class Swin(nn.Module):
         self.batch_size = batch_size
         self.patch_size = patch_size
         self.input_history = input_history
-        self.hidden_dim = 288
-        # self.fc_input = nn.Linear(self.in_dim, self.hidden_dim, device=device)
-        # self.fc_output = nn.Linear(self.hidden_dim, self.out_dim, device=device)
-        self.configuration = SwinConfig(image_size = 72, 
+        self.hidden_dim = 144
+        self.configuration = Swinv2Config(image_size = 72, 
                                         num_channels = self.input_history, 
                                         patch_size = self.patch_size, 
                                         embed_dim = self.hidden_dim//(2**(len(depths)-1)),
                                         depths = depths,
                                         window_size = 3, )
-        self.model = SwinModel(self.configuration)
-        self.decoder = nn.Linear(self.hidden_dim, out_dim, device=device)
+        self.model = Swinv2Model(self.configuration)
+        self.decoder_layer = nn.TransformerDecoderLayer(d_model = self.hidden_dim, nhead=8)
+        self.transformer_decoder = nn.TransformerDecoder(self.decoder_layer, num_layers=num_layers)
+        self.fc = nn.Linear(self.hidden_dim, out_dim, device=device)
+
     
-    def forward(self, tec):
+    def forward(self, tec, tec_target):
         output = self.model(tec)
         # print(output['last_hidden_state'].shape[:])
-        output = self.decoder(output['last_hidden_state'])
+        # output = self.transformer_decoder(tec_target, output['last_hidden_state'])
+        output = self.fc(output['last_hidden_state'])
         # print(output.shape[:])
         # input()
         return output
