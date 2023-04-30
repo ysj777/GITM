@@ -24,11 +24,10 @@ class TECDataset:
     
     #Let the data go through normalization
     def maxmin(self) :
-        ma = max(self.tec_data)
-        mi = min(self.tec_data)
-        min_max_scaler = MinMaxScaler()
-        self.tec_data = min_max_scaler.fit_transform(self.tec_data)
-        return ma[0], mi[0]
+        max_tec = 500
+        min_tec = 0
+        self.tec_data = np.array(self.tec_data) / max_tec
+        return max_tec, min_tec
 
     #Let the data go through standardization
     def z_scores(self) :
@@ -58,16 +57,17 @@ class TECDataset:
         for idx in range(self.input_history-1, len(self.tec_data)):
             if idx + self.target_hour>= len(self.tec_data):
                 break
-            world_history = []
+            input_history_TEC, target_TEC = [], []
             if _input:
-                world_history = _input[-1][1:]
-                world_history.append(self.create_input(idx))
+                input_history_TEC = _input[-1][1:]
+                input_history_TEC.append(self.create_input(idx))
             else:
                 for i in range(self.input_history):
-                    world_history.append(self.create_input(i))
-            target_world = self.create_target(idx)
-            _input.append(world_history)
-            target.append(target_world)
+                    input_history_TEC.append(self.create_input(i))
+            # target_world = self.create_target(idx)
+            target_TEC.append(self.create_input(i+self.target_hour))
+            _input.append(input_history_TEC)
+            target.append(target_TEC)
         return np.array(_input), np.array(target)
     
     def create_input(self, idx):
@@ -93,7 +93,6 @@ class TECDataset:
         for patch_idx in range(patch_count - (72//self.patch_size), patch_count): #padding zero to the final latitude
             for _ in range(self.patch_size): 
                 target_world[patch_idx].append(0)
-        # print(np.array(target_world).shape[:])
         return target_world
 
     def __len__(self):

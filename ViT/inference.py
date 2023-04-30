@@ -1,27 +1,24 @@
 import torch
 import numpy as np
-from model import ViT
 
-def inference(best_model, in_dim, out_dim, test_dataloader, patch_size, input_history, device, mode, val, val2):
+def inference(model, test_dataloader, device, mode, val, val2, best_pth):
     tec_tar, tec_pred = [], []
-    model = ViT(in_dim, out_dim, 1, device, patch_size, input_history).to(device)
-    model.load_state_dict(torch.load('save_model/'+ best_model))
+    model.load_state_dict(torch.load('save_model/' + best_pth))
     model.eval()
     total_rmse, step = 0, 0
     for step, batch in enumerate(test_dataloader):
         b_input, b_target = tuple(b.to(device) for b in batch[:2])
         # b_information = batch[3].to(device)
         # b_time = tuple(b.numpy() for b in batch[2])
-        output = model(b_input, b_target)
+        output = model(b_input)
         rmse = reduction(np.array(output.clone().detach().cpu()), np.array(b_target.clone().detach().cpu()), mode, val, val2)
         total_rmse += rmse
     print("Root Mean Square Error:", total_rmse/step)
 
 def reduction(pred, tar, mode, val, val2):
     if mode == 'maxmin':
-        for i in range(len(pred)):
-            pred[i] = pred[i]*(val-val2)+val2
-            tar[i] = tar[i]*(val-val2)+val2
+        pred = pred*(val-val2)+val2
+        tar = tar*(val-val2)+val2
     elif mode == 'z_score':
         for i in range(len(pred)):
             pred[i] = round(pred[i]*val+val2 ,2)

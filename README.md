@@ -19,7 +19,7 @@
 |   |--- train_model.py
 |   |--- save_model
 |
-|--- Swim Transformer
+|--- SwinT
 |   |--- dataloader.py
 |   |--- inference.py
 |   |--- main.py
@@ -30,6 +30,4 @@
 
 ## 訓練
 ### 指令註釋
-` python ViT/main.py -e 訓練幾次 -b 批次數 -P 看子圖片的大小 `
-
-` python "Swim Transformer"/main.py -e 訓練幾次 -b 批次數 -P 看子圖片的大小 `
+` python main.py -e 訓練幾次 -b 批次數 -p 子圖片的大小 -t 目標時間 -i 輸入時間長度 -m minmax/zscores/None -pt 此模型是否是pretrain`
