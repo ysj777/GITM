@@ -18,10 +18,18 @@ def main(
     path_save_model = 'save_model/',
     pretrained = False,
 ):
-    train_dataset = TECDataset('../data/train', mode = mode, patch_size = patch_size, target_hour = target_hour, input_history = input_history)
+    if pretrained:
+        train_dataset = TECDataset('../data/pretrained/train', mode = mode, patch_size = patch_size, target_hour = target_hour, input_history = input_history)
+        valid_dataset = TECDataset('../data/pretrained/valid', mode = mode, patch_size = patch_size, target_hour = target_hour, input_history = input_history)
+        test_dataset = TECDataset('../data/pretrained/test', mode = mode, patch_size = patch_size, target_hour = target_hour, input_history = input_history)
+    elif not pretrained:
+        train_dataset = TECDataset('../data/train', mode = mode, patch_size = patch_size, target_hour = target_hour, input_history = input_history)
+        valid_dataset = TECDataset('../data/valid', mode = mode, patch_size = patch_size, target_hour = target_hour, input_history = input_history)
+        test_dataset = TECDataset('../data/test', mode = mode, patch_size = patch_size, target_hour = target_hour, input_history = input_history)
     train_dataloader = DataLoader(train_dataset, batch_size = batch_size, drop_last = True)
-    valid_dataset = TECDataset('../data/valid', mode = mode, patch_size = patch_size, target_hour = target_hour, input_history = input_history)
     valid_dataloader = DataLoader(valid_dataset, batch_size = batch_size, drop_last=True, shuffle = False)
+    test_dataloader = DataLoader(test_dataset, batch_size = 1, shuffle = False)
+    
     print(len(train_dataloader), len(valid_dataloader))
     print(train_dataset.mode)
     print('done\n')
@@ -36,11 +44,8 @@ def main(
                 EPOCH = epoch, 
                 path_save_model = path_save_model, 
                 device = device, 
-                pretrained = pretrained)
-    if not pretrained:
-        test_dataset = TECDataset('../data/test', mode = mode, patch_size = patch_size, target_hour = target_hour, input_history = input_history)
-        test_dataloader = DataLoader(test_dataset, batch_size = 1, shuffle = False) 
-        inference(model, test_dataloader, device, mode, train_dataset.val, train_dataset.val2, best_pth)
+                pretrained = pretrained)     
+    inference(model, test_dataloader, device, mode, train_dataset.val, train_dataset.val2, best_pth)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()

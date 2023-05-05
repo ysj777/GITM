@@ -22,7 +22,8 @@ def train_model(model, dataloader, valid_dataloader, EPOCH, path_save_model, dev
     optimizer = torch.optim.AdamW(model.parameters(), lr=5e-3)
     scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0.3, patience=2)
     mse = torch.nn.MSELoss()
-    min_train_loss = float('inf')
+    min_val_loss = float('inf')
+    val_step = 0
     best_pth = ""
 
     for epoch in range(EPOCH + 1):
@@ -41,18 +42,24 @@ def train_model(model, dataloader, valid_dataloader, EPOCH, path_save_model, dev
             optimizer.step()
             train_loss += loss.detach().item()
         
-        if train_loss < min_train_loss:
+        train_loss /= len(dataloader)
+        val_loss = evalute_model(valid_dataloader, model, device, pretrained)
+        scheduler.step(val_loss)
+
+        if val_loss < min_val_loss:
             if pretrained:
                 torch.save(model.state_dict(), path_save_model + f'pretrained_model.pth')
                 best_pth = 'pretrained_model.pth'
             elif not pretrained:
                 torch.save(model.state_dict(), path_save_model + f'best_train_ViTMAE.pth')
                 best_pth = 'best_train_ViTMAE.pth'
-            min_train_loss = train_loss
+            val_step = 0
+            min_val_loss = val_loss
         
-        train_loss /= len(dataloader)
-        val_loss = evalute_model(valid_dataloader, model, device, pretrained)
-        scheduler.step(val_loss)
+        if val_step > 5: # early stopping
+            break
+        val_step += 1
+
         logger.info(f"Epoch: {epoch:4d}, Training loss: {train_loss:5.3f}, Validation loss: {val_loss:5.3f}")
     
     return best_pth

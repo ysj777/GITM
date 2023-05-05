@@ -41,10 +41,11 @@ class TECDataset:
     def get_data(self):
         dataset = []
         for file_name in os.listdir(self.path):
-            list_col = np.arange(5123)
+            list_col = [i for i in range(11, 5123)]
             data = pd.read_csv(os.path.join(self.path, file_name), skiprows= 5, usecols = list_col)
+            data = data.dropna(axis=0, how='any')
             data = data.values
-            dataset.append(data[:, 11:])
+            dataset.append(data)
         
         tec_data = dataset[0]
         for i in range(1, len(dataset)):
