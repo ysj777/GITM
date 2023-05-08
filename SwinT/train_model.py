@@ -16,15 +16,16 @@ def same_seeds(seed):
     torch.backends.cudnn.benchmark = False
     torch.backends.cudnn.deterministic = True
 
-def train_model(model, dataloader, valid_dataloader, EPOCH, path_save_model, device):
+def train_model(model, dataloader, valid_dataloader, EPOCH, path_save_model, device, pretrained):
     same_seeds(1234)
     device = torch.device(device)
-    print(model)
 
     optimizer = torch.optim.AdamW(model.parameters(), lr=5e-3)
     scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0.3, patience=2)
     mse = torch.nn.MSELoss()
-    min_train_loss = float('inf')
+    min_val_loss = float('inf')
+    val_step = 0
+    best_pth = ""
 
     for epoch in range(EPOCH + 1):
         train_loss = 0
@@ -33,24 +34,40 @@ def train_model(model, dataloader, valid_dataloader, EPOCH, path_save_model, dev
             for param in model.parameters(): param.grad = None
             b_input, b_target = tuple(b.to(device) for b in batch[:2])
             # b_information = batch[3].to(device)
-            output = model(b_input, b_target)
-            
-            loss = torch.sqrt(mse(output, b_target))
+            if pretrained:
+                output = model(b_input)
+                loss = output.loss
+            else:
+                output = model(b_input)
+                loss = torch.sqrt(mse(output, b_target))
             loss.backward()
             torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
             optimizer.step()
             train_loss += loss.detach().item()
         
-        if train_loss < min_train_loss:
-            torch.save(model.state_dict(), path_save_model + f'best_train_Swin2.pth')
-            min_train_loss = train_loss
-        
         train_loss /= len(dataloader)
-        val_loss = evalute_model(valid_dataloader, model, device)
+        val_loss = evalute_model(valid_dataloader, model, device, pretrained)
         scheduler.step(val_loss)
+
+        if val_loss < min_val_loss:
+            if pretrained:
+                torch.save(model.state_dict(), path_save_model + f'pretrained_model.pth')
+                best_pth = 'pretrained_model.pth'
+            elif not pretrained:
+                torch.save(model.state_dict(), path_save_model + f'best_train_ViTMAE.pth')
+                best_pth = 'best_train_ViTMAE.pth'
+            val_step = 0
+            min_val_loss = val_loss
+
+        if val_step > 10: # early stopping
+            break
+        val_step += 1
+
         logger.info(f"Epoch: {epoch:4d}, Training loss: {train_loss:5.3f}, Validation loss: {val_loss:5.3f}")
     
-def evalute_model(dataloader, model, device):
+    return best_pth
+
+def evalute_model(dataloader, model, device, pretrained):
     model.eval()    
     val_loss = 0
     mse = torch.nn.MSELoss()
@@ -58,8 +75,12 @@ def evalute_model(dataloader, model, device):
         b_input, b_target = tuple(b.to(device) for b in batch[:2])
         # b_information = batch[3].to(device)
         # output = model(torch.cat((b_input, b_information), 2))
-        output = model(b_input, b_target)
-        loss = torch.sqrt(mse(output, b_target))
+        if pretrained:
+            output = model(b_input)
+            loss = output.loss
+        else:
+            output = model(b_input)
+            loss = torch.sqrt(mse(output, b_target))
         val_loss += loss.detach().item()
     return val_loss / len(dataloader)
     

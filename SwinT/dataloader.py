@@ -13,6 +13,7 @@ class TECDataset:
         self.input_history = input_history
         self.val, self.val2 = 0, 0
         self.mode = "None"
+        self.year = ""
         self.tec_data = self.get_data()
         if mode == 'maxmin':
             self.val, self.val2 = self.maxmin()
@@ -41,6 +42,7 @@ class TECDataset:
     def get_data(self):
         dataset = []
         for file_name in os.listdir(self.path):
+            self.year += (file_name.split('.')[0] + ', ')
             list_col = np.arange(5123)
             data = pd.read_csv(os.path.join(self.path, file_name), skiprows= 5, usecols = list_col)
             data = data.values
@@ -57,16 +59,17 @@ class TECDataset:
         for idx in range(self.input_history-1, len(self.tec_data)):
             if idx + self.target_hour>= len(self.tec_data):
                 break
-            world_history = []
+            input_history_TEC, target_TEC = [], []
             if _input:
-                world_history = _input[-1][1:]
-                world_history.append(self.create_input(idx))
+                input_history_TEC = _input[-1][1:]
+                input_history_TEC.append(self.create_input(idx))
             else:
                 for i in range(self.input_history):
-                    world_history.append(self.create_input(i))
-            target_world = self.create_target(idx)
-            _input.append(world_history)
-            target.append(target_world)
+                    input_history_TEC.append(self.create_input(i))
+            # target_world = self.create_target(idx)
+            target_TEC.append(self.create_input(i+self.target_hour))
+            _input.append(input_history_TEC)
+            target.append(target_TEC)
         return np.array(_input), np.array(target)
 
     def create_input(self, idx):

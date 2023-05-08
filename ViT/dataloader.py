@@ -12,6 +12,7 @@ class TECDataset:
         self.target_hour = target_hour
         self.val, self.val2 = 0, 0
         self.mode = "None"
+        self.year = ""
         self.tec_data = self.get_data()
         self.input_history = input_history
         if mode == 'maxmin':
@@ -41,6 +42,7 @@ class TECDataset:
     def get_data(self):
         dataset = []
         for file_name in os.listdir(self.path):
+            self.year += (file_name.split('.')[0] + ', ')
             list_col = [i for i in range(11, 5123)]
             data = pd.read_csv(os.path.join(self.path, file_name), skiprows= 5, usecols = list_col)
             data = data.dropna(axis=0, how='any')

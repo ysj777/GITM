@@ -30,9 +30,12 @@ def main(
     valid_dataloader = DataLoader(valid_dataset, batch_size = batch_size, drop_last=True, shuffle = False)
     test_dataloader = DataLoader(test_dataset, batch_size = 1, shuffle = False)
     
-    print(len(train_dataloader), len(valid_dataloader))
+    print("Train year: " + train_dataset.year)
+    print("Valid year: " + valid_dataset.year)
+    print("Test year: " + test_dataset.year)
     print(train_dataset.mode)
     print('done\n')
+
 
     in_dim, out_dim = 72, 72
     model = ViT(in_dim, out_dim, device, patch_size, input_history, pretrained = pretrained).to(device)
@@ -45,7 +48,7 @@ def main(
                 path_save_model = path_save_model, 
                 device = device, 
                 pretrained = pretrained)     
-    inference(model, test_dataloader, device, mode, train_dataset.val, train_dataset.val2, best_pth)
+    inference(model, test_dataloader, device, mode, train_dataset.val, train_dataset.val2, best_pth, pretrained = pretrained)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()

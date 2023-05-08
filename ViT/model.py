@@ -20,7 +20,7 @@ class ViT(nn.Module):
                                     # hidden_size= self.hidden_dim,
                                     # intermediate_size = self.hidden_dim*4,
                                     num_channels = self.input_history, 
-                                    encoder_stride = patch_size,
+                                    encoder_stride = self.patch_size,
                                     patch_size = self.patch_size,)            
         self.ViT_mask = ViTForMaskedImageModeling(self.configuration)
         self.ViT = ViTModel(self.configuration)
@@ -33,7 +33,7 @@ class ViT(nn.Module):
             num_patches = (self.ViT_mask.config.image_size // self.ViT_mask.config.patch_size) ** 2
             bool_masked_pos = torch.randint(low=0, high=2, size=(1, num_patches)).bool().to(self.device)
             outputs = self.ViT_mask(tec, bool_masked_pos)
-            return outputs.loss
+            return outputs
         elif not self.pretrained:
             # print(np.array(tec.clone().detach().cpu()))
             output = self.ViT_mask(tec)

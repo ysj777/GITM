@@ -33,7 +33,8 @@ def train_model(model, dataloader, valid_dataloader, EPOCH, path_save_model, dev
             for param in model.parameters(): param.grad = None
             b_input, b_target = tuple(b.to(device) for b in batch[:2])
             if pretrained:
-                loss = model(b_input)
+                output = model(b_input)
+                loss = output.loss
             else:
                 output = model(b_input)
                 loss = torch.sqrt(mse(output, b_target))
@@ -56,7 +57,7 @@ def train_model(model, dataloader, valid_dataloader, EPOCH, path_save_model, dev
             val_step = 0
             min_val_loss = val_loss
         
-        if val_step > 5: # early stopping
+        if val_step > 10: # early stopping
             break
         val_step += 1
 
@@ -71,7 +72,8 @@ def evalute_model(dataloader, model, device, pretrained):
     for step, batch in enumerate(dataloader):
         b_input, b_target = tuple(b.to(device) for b in batch[:2])
         if pretrained:
-            loss = model(b_input)
+            output = model(b_input)
+            loss = output.loss
         else:
             output = model(b_input)
             loss = torch.sqrt(mse(output, b_target))
