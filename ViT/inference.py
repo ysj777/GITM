@@ -2,22 +2,19 @@ import torch
 import numpy as np
 
 def inference(model, test_dataloader, device, mode, val, val2, best_pth, pretrained):
-    tec_tar, tec_pred = [], []
-    model.load_state_dict(torch.load('save_model/' + best_pth))
+    model.load_state_dict(torch.load(best_pth))
     model.eval()
-    total_rmse, step = 0, 0
+    total_error, step = 0, 0
     for step, batch in enumerate(test_dataloader):
         b_input, b_target = tuple(b.to(device) for b in batch[:2])
-        # b_information = batch[3].to(device)
-        # b_time = tuple(b.numpy() for b in batch[2])
         if pretrained:
             output = model(b_input)
-            output = output.logits
+            loss = output.loss
         else:
             output = model(b_input)
-        rmse = reduction(np.array(output.clone().detach().cpu()), np.array(b_target.clone().detach().cpu()), mode, val, val2)
-        total_rmse += rmse
-    print("Root Mean Square Error:", total_rmse/step)
+            loss = reduction(np.array(output.clone().detach().cpu()), np.array(b_target.clone().detach().cpu()), mode, val, val2)
+        total_error += loss.detach().item()
+    print("Root Mean Square Error:", total_error/step)
 
 def reduction(pred, tar, mode, val, val2):
     if mode == 'maxmin':

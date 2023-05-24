@@ -6,6 +6,7 @@ from train_model import train_model
 from inference import inference
 from torch.utils.data import DataLoader
 from model import ViT
+import os
 
 def main(
     epoch = 100,
@@ -17,7 +18,12 @@ def main(
     device = 'cpu',
     path_save_model = 'save_model/',
     pretrained = False,
+    mask_ratio = 1,
+    test_mode = False,
 ):
+    if not os.path.isdir(path_save_model):
+        os.mkdir(path_save_model)
+    
     if pretrained:
         train_dataset = TECDataset('../data/pretrained/train', mode = mode, patch_size = patch_size, target_hour = target_hour, input_history = input_history)
         valid_dataset = TECDataset('../data/pretrained/valid', mode = mode, patch_size = patch_size, target_hour = target_hour, input_history = input_history)
@@ -34,20 +40,27 @@ def main(
     print("Valid year: " + valid_dataset.year)
     print("Test year: " + test_dataset.year)
     print(train_dataset.mode)
+    print("mask ratio: " + str(mask_ratio))
     print('done\n')
 
 
     in_dim, out_dim = 72, 72
-    model = ViT(in_dim, out_dim, device, patch_size, input_history, pretrained = pretrained).to(device)
-    if not pretrained:
-        model.load_state_dict(torch.load('save_model/pretrained_model.pth'))
-    best_pth = train_model(model, 
-                train_dataloader, 
-                valid_dataloader,
-                EPOCH = epoch, 
-                path_save_model = path_save_model, 
-                device = device, 
-                pretrained = pretrained)     
+    model = ViT(in_dim, out_dim, device, patch_size, input_history, pretrained = pretrained, mask_ratio = mask_ratio).to(device)
+    if pretrained:
+        best_pth = path_save_model + 'pretrained_model.pth'
+    elif not pretrained:
+        model.load_state_dict(torch.load(path_save_model + 'pretrained_model.pth'))
+        best_pth = path_save_model + 'best_train_ViTMAE.pth'
+    
+    if not test_mode:
+        train_model(model,
+                    train_dataloader, 
+                    valid_dataloader,
+                    EPOCH = epoch, 
+                    path_save_model = path_save_model, 
+                    device = device, 
+                    pretrained = pretrained)
+    
     inference(model, test_dataloader, device, mode, train_dataset.val, train_dataset.val2, best_pth, pretrained = pretrained)
 
 if __name__ == '__main__':
@@ -59,6 +72,8 @@ if __name__ == '__main__':
     parser.add_argument('--input_history', '-i', type=int, default=1)
     parser.add_argument('--mode', '-m', type=str, default='None')
     parser.add_argument('--pretrained', '-pt', type=bool, default=False)
+    parser.add_argument('--mask_ratio', '-ma', type=int, default=1)
+    parser.add_argument('--test_mode', '-tm', type=int, default=False)
     args = parser.parse_args()
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     print(device)
@@ -69,5 +84,7 @@ if __name__ == '__main__':
          input_history = args.input_history, 
          mode = args.mode, 
          device = device, 
-         path_save_model = 'save_model/',
-         pretrained = args.pretrained)
+         path_save_model = f'save_model/patch_{args.patch_size}_mask_ratio_{args.mask_ratio}/',
+         pretrained = args.pretrained,
+         mask_ratio = args.mask_ratio,
+         test_mode = args.test_mode)

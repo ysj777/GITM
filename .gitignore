@@ -2,6 +2,8 @@ data/train
 data/valid
 data/test
 
-Swim Transformer/__pycache__
+SwinT/__pycache__
+SwinT/save_model
 
 ViT/__pycache__
+ViT/save_model

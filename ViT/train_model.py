@@ -50,21 +50,17 @@ def train_model(model, dataloader, valid_dataloader, EPOCH, path_save_model, dev
         if val_loss < min_val_loss:
             if pretrained:
                 torch.save(model.state_dict(), path_save_model + f'pretrained_model.pth')
-                best_pth = 'pretrained_model.pth'
             elif not pretrained:
                 torch.save(model.state_dict(), path_save_model + f'best_train_ViTMAE.pth')
-                best_pth = 'best_train_ViTMAE.pth'
             val_step = 0
             min_val_loss = val_loss
-        
+
         if val_step > 10: # early stopping
             break
         val_step += 1
 
         logger.info(f"Epoch: {epoch:4d}, Training loss: {train_loss:5.3f}, Validation loss: {val_loss:5.3f}")
     
-    return best_pth
-
 def evalute_model(dataloader, model, device, pretrained):
     model.eval()    
     val_loss = 0

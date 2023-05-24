@@ -5,7 +5,7 @@ import torch
 from transformers import ViTConfig, ViTModel, ViTForMaskedImageModeling
 
 class ViT(nn.Module):
-    def __init__(self, in_dim, out_dim, device, patch_size, input_history, num_layers=4, pretrained = False) -> None:
+    def __init__(self, in_dim, out_dim, device, patch_size, input_history, num_layers=4, pretrained = False, mask_ratio = 1) -> None:
         super(ViT, self).__init__()
         self.device = device
         self.in_dim = in_dim
@@ -14,6 +14,7 @@ class ViT(nn.Module):
         self.input_history = input_history
         self.hidden_dim = 72
         self.pretrained = pretrained
+        self.mask_ratio = mask_ratio / 9
 
         # self.embedding = nn.Linear(self.in_dim, self.hidden_dim, device=device)
         self.configuration = ViTConfig(image_size = 72,
@@ -31,7 +32,10 @@ class ViT(nn.Module):
     def forward(self, tec):
         if self.pretrained:
             num_patches = (self.ViT_mask.config.image_size // self.ViT_mask.config.patch_size) ** 2
-            bool_masked_pos = torch.randint(low=0, high=2, size=(1, num_patches)).bool().to(self.device)
+            num_masked_patches = int(num_patches * self.mask_ratio)
+            masked_indices = torch.randperm(num_patches)[:num_masked_patches]
+            bool_masked_pos = torch.zeros(size=(1, num_patches),dtype=torch.bool, device = self.device)
+            bool_masked_pos[:, masked_indices] = True
             outputs = self.ViT_mask(tec, bool_masked_pos)
             return outputs
         elif not self.pretrained:
