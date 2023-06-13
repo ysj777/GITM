@@ -1,12 +1,10 @@
 import numpy as np
 import pandas as pd
 from pathlib import Path
-from tqdm.auto import tqdm
 import argparse
-from datetime import datetime, timedelta
 import matplotlib.pyplot as plt
+import matplotlib.cm as cm
 import cartopy.crs as ccrs
-from PIL import Image
 
 def plot_heatmap_on_earth_car(truth_np, pred_np, RECORDPATH):  # plot castleline with cartopy
         
@@ -40,11 +38,11 @@ def plot_heatmap_on_earth_car(truth_np, pred_np, RECORDPATH):  # plot castleline
         if idx == 0:
             print(Lon, Lat)
 
-        cmap = plt.get_cmap('jet')
+        cmap = cm.get_cmap('jet').copy()
         cmap.set_under('white')
         ax.pcolormesh(Lon,Lat,
                       np.transpose(data),
-                      vmin=0,
+                      vmin=0.01,
                       vmax=40 if idx != 2 else 10,
                       cmap=cmap if idx != 2 else 'Greens',
                     #   cbar_ax = cbar_ax1 if idx == 0 else cbar_ax2 if idx == 2 else None,
