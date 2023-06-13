@@ -10,7 +10,7 @@ import random
 import os
 
 def main(
-    epoch = 100,
+    epoch = 500,
     batch_size = 32,
     patch_size = 12,
     target_hour = 24,
@@ -69,13 +69,14 @@ def main(
                     EPOCH = epoch, 
                     path_save_model = path_save_model, 
                     device = device, 
-                    pretrained = pretrained)
+                    pretrained = pretrained,
+                    batch_size= batch_size)
     
-    inference(model, test_dataloader, device, mode, train_dataset.val, train_dataset.val2, best_pth, pretrained = pretrained)
+    inference(model, test_dataloader, device, mode, train_dataset.val, train_dataset.val2, best_pth, pretrained = pretrained, path = path_save_model)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--epoch', '-e', type=int, default=100)
+    parser.add_argument('--epoch', '-e', type=int, default=500)
     parser.add_argument('--batch_size', '-b', type=int, default=32)
     parser.add_argument('--patch_size', '-p', type=int, default=12)
     parser.add_argument('--target_hour', '-t', type=int, default=24)
