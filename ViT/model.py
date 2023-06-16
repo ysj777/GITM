@@ -37,12 +37,12 @@ class ViT(nn.Module):
             bool_masked_pos = torch.zeros(size=(1, num_patches),dtype=torch.bool, device = self.device)
             bool_masked_pos[:, masked_indices] = True
             outputs = self.ViT_mask(tec, bool_masked_pos)
-            return outputs
+            return outputs, list(np.array(masked_indices))
         elif not self.pretrained:
             # print(np.array(tec.clone().detach().cpu()))
             output = self.ViT_mask(tec)
             # print(output['logits'])
-            output = self.fc(output['logits'])
+            output = self.fc(output['reconstruction'])
             return output
 
     def _generate_square_subsequent_mask(self, sz):

@@ -68,7 +68,7 @@ class TECDataset:
                 for i in range(self.input_history):
                     input_history_TEC.append(self.create_input(i))
             # target_world = self.create_target(idx)
-            target_TEC.append(self.create_input(i+self.target_hour))
+            target_TEC.append(self.create_input(idx+self.target_hour))
             _input.append(input_history_TEC)
             target.append(target_TEC)
         return np.array(_input), np.array(target)

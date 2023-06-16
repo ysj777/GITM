@@ -4,8 +4,8 @@ data/test
 
 SwinT/__pycache__
 SwinT/save_model
-ViT/predict.csv
+SwinT/*.csv
 
 ViT/__pycache__
 ViT/save_model
-ViT/predict.csv
+ViT/*.csv
