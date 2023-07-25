@@ -29,30 +29,27 @@ def main(
     if not os.path.isdir(path_save_model):
         os.mkdir(path_save_model)
     
+    # if test_mode:
+    #     train_dataset = TECDataset('../data/pretrained/sample', mode = mode, patch_size = patch_size, target_hour = target_hour, input_history = input_history)
+    #     train_data, valid_data, test_data = [], [], train_dataset
     if pretrained:
         train_dataset = TECDataset('../data/pretrained/train', mode = mode, patch_size = patch_size, target_hour = target_hour, input_history = input_history)
-        # valid_dataset = TECDataset('../data/pretrained/valid', mode = mode, patch_size = patch_size, target_hour = target_hour, input_history = input_history)
-        # test_dataset = TECDataset('../data/pretrained/test', mode = mode, patch_size = patch_size, target_hour = target_hour, input_history = input_history)
         dataset = []
         for data in train_dataset:
             dataset.append(data)
         random.shuffle(dataset)
-        train_data, valid_dataset, test_dataset = dataset[:int(len(dataset)*0.8)], dataset[int(len(dataset)*0.8):int(len(dataset)*0.9)], dataset[int(len(dataset)*0.9):]
+        train_data, valid_data, test_data = dataset[:int(len(dataset)*0.8)], dataset[int(len(dataset)*0.8):int(len(dataset)*0.9)], dataset[int(len(dataset)*0.9):]
     elif not pretrained:
-        train_dataset = TECDataset('../data/train', mode = mode, patch_size = patch_size, target_hour = target_hour, input_history = input_history)
-        valid_dataset = TECDataset('../data/valid', mode = mode, patch_size = patch_size, target_hour = target_hour, input_history = input_history)
-        test_dataset = TECDataset('../data/test', mode = mode, patch_size = patch_size, target_hour = target_hour, input_history = input_history)
-    train_dataloader = DataLoader(train_data, batch_size = batch_size, drop_last = True)
-    valid_dataloader = DataLoader(valid_dataset, batch_size = batch_size, drop_last=True, shuffle = False)
-    test_dataloader = DataLoader(test_dataset, batch_size = 1, shuffle = False)
+        train_data = TECDataset('../data/train', mode = mode, patch_size = patch_size, target_hour = target_hour, input_history = input_history)
+        valid_data = TECDataset('../data/valid', mode = mode, patch_size = patch_size, target_hour = target_hour, input_history = input_history)
+        test_data = TECDataset('../data/test', mode = mode, patch_size = patch_size, target_hour = target_hour, input_history = input_history)
     
-    # print("Train year: " + train_dataset.year)
-    # print("Valid year: " + valid_dataset.year)
-    # print("Test year: " + test_dataset.year)
-    # print(train_dataset.mode)
+    train_dataloader = DataLoader(train_data, batch_size = batch_size, drop_last = True)
+    valid_dataloader = DataLoader(valid_data, batch_size = batch_size, drop_last=True, shuffle = False)
+    test_dataloader = DataLoader(test_data, batch_size = 1, shuffle = False)
+    
     print("mask ratio: " + str(mask_ratio))
     print('done\n')
-
 
     in_dim, out_dim = 72, 72
     model = ViT(in_dim, out_dim, device, patch_size, input_history, pretrained = pretrained, mask_ratio = mask_ratio).to(device)

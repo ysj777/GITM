@@ -4,7 +4,7 @@ import csv
 from tqdm import tqdm
 
 def inference(model, test_dataloader, device, mode, val, val2, best_pth, pretrained, path):
-    input, target = [], []
+    input, target, record = [], [], []
     model.load_state_dict(torch.load(best_pth))
     model.eval()
     total_error, step = 0, 0
@@ -13,7 +13,7 @@ def inference(model, test_dataloader, device, mode, val, val2, best_pth, pretrai
         if pretrained:
             output, mask_ = model(b_input)
             input_temp = [round(element.item(), 1) for sublist in output.reconstruction[0][0][:-1] for element in sublist]
-            target_temp = [round(element.item(), 1) for sublist in b_target[0][0][:-1] for element in sublist]
+            target_temp = [round(element.item(), 1) for sublist in b_input[0][0][:-1] for element in sublist]
             input_temp.insert(0, model.patch_size)
             target_temp.insert(0, model.patch_size)
             input_temp.insert(1, mask_)
@@ -21,12 +21,14 @@ def inference(model, test_dataloader, device, mode, val, val2, best_pth, pretrai
             input.append(input_temp)
             target.append(target_temp)
             loss = output.loss
+            record.append(loss.detach().item())
         else:
             output, _ = model(b_input)
             loss = reduction(np.array(output.clone().detach().cpu()), np.array(b_target.clone().detach().cpu()), mode, val, val2)
         total_error += loss.detach().item()
     save_csv(input, target, path)
     print("Root Mean Square Error:", total_error/step)
+    print("Standard deviation:", np.std(record))
 
 def reduction(pred, tar, mode, val, val2):
     if mode == 'maxmin':
@@ -47,8 +49,8 @@ def cal_rmse(pre, tar):
     return rmse
 
 def save_csv(input, target, path):
-    row_1 = []
-    row_2 = []
+    row_1 = ['patch_size', 'mask']
+    row_2 = ['patch_size', 'mask']
     for lat in range(175, -180, -5):
         for lon in range(-180, 180, 5):
             row_1.append(lat/2)

@@ -40,11 +40,13 @@ def plot_heatmap_on_earth_car(truth_np, pred_np, RECORDPATH):  # plot castleline
 
         cmap = cm.get_cmap('jet').copy()
         cmap.set_under('white')
+        cmap2 = cm.get_cmap('Greens').copy()
+        cmap2.set_under('white')
         ax.pcolormesh(Lon,Lat,
                       np.transpose(data),
-                      vmin=0.01,
-                      vmax=40 if idx != 2 else 10,
-                      cmap=cmap if idx != 2 else 'Greens',
+                      vmin=0,
+                      vmax=30 if idx != 2 else 5,
+                      cmap=cmap if idx != 2 else cmap2,
                     #   cbar_ax = cbar_ax1 if idx == 0 else cbar_ax2 if idx == 2 else None,
                     #   cbar=idx in (0, 2),
                      )
@@ -66,18 +68,28 @@ def plot_heatmap_on_earth_car(truth_np, pred_np, RECORDPATH):  # plot castleline
             ax.set_ylabel('longtitude')
         print('lens:',len(ax.get_xticklabels()), len(ax.get_yticklabels()))
 
+    diff_loss = cal_loss(truth_np, pred_np)
     # fig.subplots_adjust(bottom=0, right=0.9, top=1)
     axes[0].set(title='Truth')
     axes[1].set(title='Prediction')
-    axes[2].set(title='Difference')
+    axes[2].set(title=f'Difference  {diff_loss}')
     # fig.canvas.draw()
     fig.tight_layout(rect=[0, 0, .9, 1])
     # fig.tight_layout()
     fig.colorbar(axes[0].collections[0], cax=cbar_ax1)
     fig.colorbar(axes[2].collections[0], cax=cbar_ax2)
     # 儲存圖片
+    
     fig.suptitle('GTEC MAP', fontsize=16)
     plt.savefig(RECORDPATH / 'prediction_truth_diff.jpg', dpi=1000)
+
+def cal_loss(truth_np, pred_np):
+    loss, count = 0, 0
+    for t, p in zip(truth_np, pred_np):
+        if t != -1 and p != -1:
+            loss += abs(t-p)
+            count += 1
+    return round(loss /count, 2)
 
 def process_data(data):
     patch_size = data[0]
@@ -86,14 +98,14 @@ def process_data(data):
     tec_data = data[2:]
     patch_count = 72*72//(patch_size*patch_size)
     target_world = [[]for _ in range(patch_count)]
-    
+
     for longitude in range(71):
         for lat in range(72):
             patch_idx = (longitude//patch_size)*(72//patch_size) + lat//patch_size
             if patch_idx in mask:
                 target_world[patch_idx].append(tec_data[longitude*72 + lat])
             else:
-                target_world[patch_idx].append(0)
+                target_world[patch_idx].append(-1)
 
     tec_map = []
     for patch in range(0, len(target_world), 72//patch_size):
@@ -106,7 +118,7 @@ def main(args):
     
     RECORDPATH = Path(args.record)
     
-    dataset = pd.read_csv(args.file, header=list(range(2))).reset_index(drop=True)
+    dataset = pd.read_csv(f'{args.file}.csv', header=list(range(2))).reset_index(drop=True)
     
     for i in range(0, len(dataset), 2):
         pred_sr = process_data(dataset.values[i])
@@ -116,6 +128,6 @@ def main(args):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('-f', '--file', type=str, default='predict.csv')
+    parser.add_argument('-f', '--file', type=str, default='predict')
     parser.add_argument('-r', '--record', type=str, default='./')
     main(parser.parse_args())

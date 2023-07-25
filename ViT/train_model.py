@@ -54,15 +54,15 @@ def train_model(model, dataloader, valid_dataloader, EPOCH, path_save_model, dev
         if val_loss < min_val_loss:
             if pretrained:
                 torch.save(model.state_dict(), path_save_model + 'pretrained_model.pth')
-                if epoch % 10 == 0:
-                    torch.save(model.state_dict(), path_save_model + f'pretrained_model_{epoch}.pth')
             elif not pretrained:
                 torch.save(model.state_dict(), path_save_model + 'best_train_ViTMAE.pth')
-                if epoch % 10 == 0:
-                    torch.save(model.state_dict(), path_save_model + f'best_train_ViTMAE_{epoch}.pth')
             eraly_stopping_step = 0
             min_val_loss = val_loss
         
+        if pretrained and epoch % 10 == 0:
+            torch.save(model.state_dict(), path_save_model + f'pretrained_model_{epoch}.pth')
+        elif not pretrained and epoch % 10 == 0:
+            torch.save(model.state_dict(), path_save_model + f'best_train_ViTMAE_{epoch}.pth')
 
         if eraly_stopping_step > 20: # early stopping
             break
