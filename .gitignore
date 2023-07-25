@@ -4,8 +4,10 @@ data/test
 
 SwinT/__pycache__
 SwinT/save_model
+SwinT/convergence_loss
 SwinT/*.csv
 
 ViT/__pycache__
 ViT/save_model
+ViT/convergence_loss
 ViT/*.csv
