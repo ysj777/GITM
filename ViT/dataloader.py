@@ -6,7 +6,7 @@ from torch.utils.data import DataLoader
 from sklearn.preprocessing import StandardScaler,MinMaxScaler
 
 class TECDataset:
-    def __init__(self, path, mode = 'maxmin', patch_size = 8, target_hour = 24, input_history = 6) -> None:
+    def __init__(self, path, mode = 'maxmin', patch_size = 4, target_hour = 24, input_history = 1) -> None:
         self.path = path
         self.patch_size = patch_size
         self.target_hour = target_hour

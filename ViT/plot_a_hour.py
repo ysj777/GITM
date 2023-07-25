@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 import cartopy.crs as ccrs
 
-def plot_heatmap_on_earth_car(truth_np, pred_np, RECORDPATH):  # plot castleline with cartopy
+def plot_heatmap_on_earth_car(truth_np, pred_np, RECORDPATH, epoch):  # plot castleline with cartopy
         
     extent = (-180, 175, -87.5, 87.5)
     # 設置畫布大小
@@ -81,7 +81,7 @@ def plot_heatmap_on_earth_car(truth_np, pred_np, RECORDPATH):  # plot castleline
     # 儲存圖片
     
     fig.suptitle('GTEC MAP', fontsize=16)
-    plt.savefig(RECORDPATH / 'prediction_truth_diff.jpg', dpi=1000)
+    plt.savefig(RECORDPATH + f'prediction_truth_diff_{epoch}.jpg', dpi=1000)
 
 def cal_loss(truth_np, pred_np):
     loss, count = 0, 0
@@ -123,7 +123,7 @@ def main(args):
     for i in range(0, len(dataset), 2):
         pred_sr = process_data(dataset.values[i])
         truth_sr = process_data(dataset.values[i+1])
-        plot_heatmap_on_earth_car(np.array(truth_sr), np.array(pred_sr), RECORDPATH)
+        plot_heatmap_on_earth_car(np.array(truth_sr), np.array(pred_sr), RECORDPATH, 0)
         input()
 
 if __name__ == "__main__":

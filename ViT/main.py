@@ -74,8 +74,8 @@ def main(
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--epoch', '-e', type=int, default=500)
-    parser.add_argument('--batch_size', '-b', type=int, default=32)
-    parser.add_argument('--patch_size', '-p', type=int, default=12)
+    parser.add_argument('--batch_size', '-b', type=int, default=8)
+    parser.add_argument('--patch_size', '-p', type=int, default=4)
     parser.add_argument('--target_hour', '-t', type=int, default=24)
     parser.add_argument('--input_history', '-i', type=int, default=1)
     parser.add_argument('--mode', '-m', type=str, default='None')

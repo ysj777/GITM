@@ -7,12 +7,14 @@ def inference(model, test_dataloader, device, mode, val, val2, best_pth, pretrai
     input, target, record = [], [], []
     model.load_state_dict(torch.load(best_pth))
     model.eval()
-    total_error, step = 0, 0
+    mse = torch.nn.MSELoss()
+
+    total_mae_error, total_rmse_error, step = 0, 0, 0
     for step, batch in tqdm(enumerate(test_dataloader)):
         b_input, b_target = tuple(b.to(device) for b in batch[:2])
         if pretrained:
             output, mask_ = model(b_input)
-            input_temp = [round(element.item(), 1) for sublist in output.reconstruction[0][0][:-1] for element in sublist]
+            input_temp = [round(element.item(), 1) for sublist in output.logits[0][0][:-1] for element in sublist]
             target_temp = [round(element.item(), 1) for sublist in b_input[0][0][:-1] for element in sublist]
             input_temp.insert(0, model.patch_size)
             target_temp.insert(0, model.patch_size)
@@ -20,14 +22,18 @@ def inference(model, test_dataloader, device, mode, val, val2, best_pth, pretrai
             target_temp.insert(1, mask_)
             input.append(input_temp)
             target.append(target_temp)
-            loss = output.loss
-            record.append(loss.detach().item())
+            mae_loss = output.loss
+            rmse_error = torch.sqrt(mse(output.logits, b_target))
+            record.append(mae_loss.detach().item())
         else:
             output, _ = model(b_input)
-            loss = reduction(np.array(output.clone().detach().cpu()), np.array(b_target.clone().detach().cpu()), mode, val, val2)
-        total_error += loss.detach().item()
-    save_csv(input, target, path)
-    print("Root Mean Square Error:", total_error/step)
+            mae_loss = 0
+            rmse_error = reduction(np.array(output.clone().detach().cpu()), np.array(b_target.clone().detach().cpu()), mode, val, val2)
+        total_mae_error += mae_loss.detach().item()
+        total_rmse_error += rmse_error.detach().item()
+    # save_csv(input, target, path)
+    print("Mean Absolute Error:", total_mae_error/step)
+    print("Root Mean Square Error:", total_rmse_error/step)
     print("Standard deviation:", np.std(record))
 
 def reduction(pred, tar, mode, val, val2):

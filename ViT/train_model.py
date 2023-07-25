@@ -33,6 +33,8 @@ def train_model(model, dataloader, valid_dataloader, EPOCH, path_save_model, dev
         for step, batch in enumerate(dataloader):            
             for param in model.parameters(): param.grad = None
             b_input, b_target = tuple(b.to(device) for b in batch[:2])
+            print(b_input)
+            input()
             if pretrained:
                 output, _ = model(b_input)
                 loss = output.loss
