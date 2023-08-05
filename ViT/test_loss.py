@@ -1,4 +1,4 @@
-from plot_a_hour import process_data, plot_heatmap_on_earth_car
+from plot_a_hour import plot_heatmap_on_earth_car
 from model import ViT
 import torch
 import numpy as np
@@ -17,8 +17,45 @@ def create_input(truth):
     world = [[world]]
     return torch.tensor(world, dtype=torch.float)
 
+def process_data(pred, truth):
+    info = pred[:3]
+    patch_size = pred[3]
+    temp = pred[4][1:-1]
+    mask = list(map(int, temp.split(',')))
+    pred_tec_data = pred[5:]
+    truth_tec_data = truth[5:]
+    patch_count = 72*72//(patch_size*patch_size)
+    target_world = [[]for _ in range(patch_count)]
+    pred_and_truth = [[]for _ in range(patch_count)]
+
+    for longitude in range(71):
+        for lat in range(72):
+            patch_idx = (longitude//patch_size)*(72//patch_size) + lat//patch_size
+            if patch_idx in mask:
+                target_world[patch_idx].append(pred_tec_data[longitude*72 + lat])
+                pred_and_truth[patch_idx].append(pred_tec_data[longitude*72 + lat])
+            else:
+                target_world[patch_idx].append(-1)
+                pred_and_truth[patch_idx].append(truth_tec_data[longitude*72 + lat])
+
+    tec_map = []
+    pred_plus_truth = []
+    for patch in range(0, len(target_world), 72//patch_size):
+        for lat_idx in range(len(target_world[patch])//patch_size):
+            for lon_idx in range(72//patch_size):
+                tec_map += target_world[patch + lon_idx][lat_idx*patch_size:(lat_idx+1)*patch_size]
+                pred_plus_truth += pred_and_truth[patch + lon_idx][lat_idx*patch_size:(lat_idx+1)*patch_size]
+    return info, tec_map, pred_plus_truth
+
+def insert_info(arr, b_info, patch_size, mask_):
+    arr.insert(0, mask_)
+    arr.insert(0, patch_size)
+    for info in reversed(b_info):
+        arr.insert(0, info)
+    return arr
+
 def main(file = 'predict',
-        time = 2,
+        time = 0,
         epoch = 100,
         RECORDPATH = '.coverge_loss/',
         patch_size = 4,
@@ -28,7 +65,6 @@ def main(file = 'predict',
         target_path = '',
         pretrained = True,
         mask_ratio = 1,
-        test_mode = False,
 ):
     
     in_dim, out_dim = 72, 72
@@ -39,22 +75,20 @@ def main(file = 'predict',
     model.eval()
 
     dataset = pd.read_csv(f'{file}.csv', header=list(range(2))).reset_index(drop=True)
-    target = dataset.values[(time % len(dataset)) + 1]
+    target = dataset.values[(2*time % len(dataset)) + 1]
     
     for i in range(epoch):
-        truth_sr = create_input(target[2:]).to(device)
+        truth_sr = create_input(target[5:]).to(device)
         output, mask_ = model(truth_sr)
-        # print(output.logits[0][0])
         pred_sr = [round(element.item(), 1) for sublist in output.logits[0][0][:-1] for element in sublist]
-        pred_sr.insert(0, model.patch_size)
-        pred_sr.insert(1, str(mask_))
         truth_sr = [round(element.item(), 1) for sublist in truth_sr[0][0] for element in sublist]
-        truth_sr.insert(0, target[0])
-        truth_sr.insert(1, target[1])
-        pred = process_data(pred_sr)
-        truth = process_data(truth_sr)
-        plot_heatmap_on_earth_car(np.array(pred), np.array(truth), RECORDPATH, i)
-        target = pred_sr[:]
+        pred_sr = insert_info(pred_sr, target[:3], model.patch_size, str(mask_))
+        truth_sr = insert_info(truth_sr, target[:3], model.patch_size, str(mask_))
+        p_info, pred_sr, next_truth = process_data(pred_sr, truth_sr)
+        t_info, truth_sr, _ = process_data(truth_sr, truth_sr)
+        plot_heatmap_on_earth_car(np.array(truth_sr), np.array(pred_sr), RECORDPATH, i, p_info)
+        next_truth = insert_info(next_truth, target[:3], model.patch_size, str(mask_))
+        target = next_truth[:]
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
@@ -66,7 +100,6 @@ if __name__ == '__main__':
     parser.add_argument('--target_hour', '-th', type=int, default=24)
     parser.add_argument('--pretrained', '-pt', type=bool, default=True)
     parser.add_argument('--mask_ratio', '-ma', type=int, default=1)
-    parser.add_argument('--test_mode', '-tm', type=int, default=False)
    
     
     args = parser.parse_args()
@@ -82,5 +115,4 @@ if __name__ == '__main__':
         path_save_model = f'save_model/',
         target_path = f'patch_{args.patch_size}_mask_ratio_{args.mask_ratio}/',
         pretrained = args.pretrained,
-        mask_ratio = args.mask_ratio,
-        test_mode = args.test_mode)
+        mask_ratio = args.mask_ratio)

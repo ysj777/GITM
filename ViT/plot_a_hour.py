@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 import cartopy.crs as ccrs
 
-def plot_heatmap_on_earth_car(truth_np, pred_np, RECORDPATH, epoch):  # plot castleline with cartopy
+def plot_heatmap_on_earth_car(truth_np, pred_np, RECORDPATH, epoch, info):  # plot castleline with cartopy
         
     extent = (-180, 175, -87.5, 87.5)
     # 設置畫布大小
@@ -35,8 +35,8 @@ def plot_heatmap_on_earth_car(truth_np, pred_np, RECORDPATH, epoch):  # plot cas
         gl.right_labels = True if idx == 0 else False
 
         Lat,Lon = np.meshgrid(lat,lon)
-        if idx == 0:
-            print(Lon, Lat)
+        # if idx == 0:
+        #     print(Lon, Lat)
 
         cmap = cm.get_cmap('jet').copy()
         cmap.set_under('white')
@@ -70,7 +70,7 @@ def plot_heatmap_on_earth_car(truth_np, pred_np, RECORDPATH, epoch):  # plot cas
 
     diff_loss = cal_loss(truth_np, pred_np)
     # fig.subplots_adjust(bottom=0, right=0.9, top=1)
-    axes[0].set(title='Truth')
+    axes[0].set(title=f'Truth({int(info[0])}, {int(info[1])}, {int(info[2])})')
     axes[1].set(title='Prediction')
     axes[2].set(title=f'Difference  {diff_loss}')
     # fig.canvas.draw()
@@ -92,10 +92,11 @@ def cal_loss(truth_np, pred_np):
     return round(loss /count, 2)
 
 def process_data(data):
-    patch_size = data[0]
-    temp = data[1][1:-1]
+    info = data[:3]
+    patch_size = data[3]
+    temp = data[4][1:-1]
     mask = list(map(int, temp.split(',')))
-    tec_data = data[2:]
+    tec_data = data[5:]
     patch_count = 72*72//(patch_size*patch_size)
     target_world = [[]for _ in range(patch_count)]
 
@@ -112,18 +113,16 @@ def process_data(data):
         for lat_idx in range(len(target_world[patch])//patch_size):
             for lon_idx in range(72//patch_size):
                 tec_map += target_world[patch + lon_idx][lat_idx*patch_size:(lat_idx+1)*patch_size]
-    return tec_map
+    return info, tec_map
 
 def main(args):
-    
-    RECORDPATH = Path(args.record)
-    
+        
     dataset = pd.read_csv(f'{args.file}.csv', header=list(range(2))).reset_index(drop=True)
     
     for i in range(0, len(dataset), 2):
-        pred_sr = process_data(dataset.values[i])
-        truth_sr = process_data(dataset.values[i+1])
-        plot_heatmap_on_earth_car(np.array(truth_sr), np.array(pred_sr), RECORDPATH, 0)
+        p_info, pred_sr = process_data(dataset.values[i])
+        t_info, truth_sr = process_data(dataset.values[i+1])
+        plot_heatmap_on_earth_car(np.array(truth_sr), np.array(pred_sr), args.record, 0, p_info)
         input()
 
 if __name__ == "__main__":

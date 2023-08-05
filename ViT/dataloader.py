@@ -11,17 +11,17 @@ class TECDataset:
         self.patch_size = patch_size
         self.target_hour = target_hour
         self.val, self.val2 = 0, 0
+        self.input_history = input_history
         self.mode = "None"
         self.year = ""
         self.tec_data = self.get_data()
-        self.input_history = input_history
         if mode == 'maxmin':
             self.val, self.val2 = self.maxmin()
             self.mode = 'max_min'
         elif mode == 'z_score': #z_score
             self.val, self.val2 = self.z_scores()
             self.mode = 'z_score'
-        self._input, self.target = self.create_dataset()
+        self.DOY_info, self._input, self.target = self.create_dataset()
     
     #Let the data go through normalization
     def maxmin(self) :
@@ -44,6 +44,7 @@ class TECDataset:
         for file_name in os.listdir(self.path):
             self.year += (file_name.split('.')[0] + ', ')
             list_col = [i for i in range(11, 5123)]
+            list_col += [1, 2, 3]
             data = pd.read_csv(os.path.join(self.path, file_name), skiprows= 5, usecols = list_col)
             data = data.dropna(axis=0, how='any')
             data = data.values
@@ -56,7 +57,7 @@ class TECDataset:
 
     #Create a dataset that fits the model
     def create_dataset(self) :
-        _input, target = [], []
+        DOY_info ,_input, target = [], [], []
         for idx in range(self.input_history-1, len(self.tec_data)):
             if idx + self.target_hour>= len(self.tec_data):
                 break
@@ -69,16 +70,17 @@ class TECDataset:
                     input_history_TEC.append(self.create_input(i))
             # target_world = self.create_target(idx)
             target_TEC.append(self.create_input(idx+self.target_hour))
+            DOY_info.append(self.tec_data[idx][:3])
             _input.append(input_history_TEC)
             target.append(target_TEC)
-        return np.array(_input), np.array(target)
+        return np.array(DOY_info), np.array(_input), np.array(target)
     
     def create_input(self, idx):
         world = []
         for longitude in range(71):
             latitude = []
             for lat in range(72):
-                latitude.append(self.tec_data[idx][longitude*72 + lat])
+                latitude.append(self.tec_data[idx][3+longitude*72 + lat])
             world.append(latitude)
         world.append([0 for _ in range(72)])
         return world
@@ -91,7 +93,7 @@ class TECDataset:
         for longitude in range(71):
             for lat in range(72):
                 patch_idx = (longitude//self.patch_size)*(72//self.patch_size) + lat//self.patch_size
-                target_world[patch_idx].append(self.tec_data[idx + self.target_hour][longitude*72 + lat])
+                target_world[patch_idx].append(self.tec_data[idx + self.target_hour][3 + longitude*72 + lat])
         
         for patch_idx in range(patch_count - (72//self.patch_size), patch_count): #padding zero to the final latitude
             for _ in range(self.patch_size): 
@@ -102,9 +104,10 @@ class TECDataset:
         return len(self.target)
 
     def __getitem__(self, idx):
+        DOY_info = torch.tensor(self.DOY_info[idx], dtype=torch.float)
         _input = torch.tensor(self._input[idx], dtype=torch.float)
         target = torch.tensor(self.target[idx], dtype=torch.float)
-        return _input, target,
+        return DOY_info, _input, target,
 
 
 if __name__ == '__main__':
