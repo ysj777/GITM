@@ -28,10 +28,7 @@ def main(
     path_save_model = path_save_model + target_path
     if not os.path.isdir(path_save_model):
         os.mkdir(path_save_model)
-    
-    # if test_mode:
-    #     train_dataset = TECDataset('../data/pretrained/sample', mode = mode, patch_size = patch_size, target_hour = target_hour, input_history = input_history)
-    #     train_data, valid_data, test_data = [], [], train_dataset
+        
     if pretrained:
         train_dataset = TECDataset('../data/pretrained/train', mode = mode, patch_size = patch_size, target_hour = target_hour, input_history = input_history)
         dataset = []

@@ -37,8 +37,8 @@ def train_model(model, dataloader, valid_dataloader, EPOCH, path_save_model, dev
                 output, _ = model(b_input)
                 loss = output.loss
             else:
-                output, _ = model(b_input)
-                loss = torch.sqrt(mse(output.reconstruction, b_target))
+                output = model(b_input)
+                loss = torch.sqrt(mse(output, b_target))
             loss.backward()
             torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
             optimizer.step()
@@ -81,7 +81,7 @@ def evalute_model(dataloader, model, device, pretrained):
             output, _ = model(b_input)
             loss = output.loss
         else:
-            output, _ = model(b_input)
+            output = model(b_input)
             loss = torch.sqrt(mse(output, b_target))
         val_loss += loss.detach().item()
     return val_loss / len(dataloader)
