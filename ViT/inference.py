@@ -25,10 +25,11 @@ def inference(model, test_dataloader, device, mode, val, val2, best_pth, pretrai
             rmse_error = torch.sqrt(mse(output.logits, b_target))
             record.append(mae_loss.detach().item())
         else:
-            output, _ = model(b_input)
+            output = model(b_input)
+            
+            rmse_error = torch.sqrt(mse(output, b_target))#reduction(np.array(output.clone().detach().cpu()), np.array(b_target.clone().detach().cpu()), mode, val, val2)
             mae_loss = 0
-            rmse_error = reduction(np.array(output.clone().detach().cpu()), np.array(b_target.clone().detach().cpu()), mode, val, val2)
-        total_mae_error += mae_loss.detach().item()
+        # total_mae_error += mae_loss.detach().item()
         total_rmse_error += rmse_error.detach().item()
     
     save_csv(input, target, path)

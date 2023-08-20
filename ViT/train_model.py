@@ -76,7 +76,7 @@ def evalute_model(dataloader, model, device, pretrained):
     val_loss = 0
     mse = torch.nn.MSELoss()
     for step, batch in enumerate(dataloader):
-        b_input, b_target = tuple(b.to(device) for b in batch[:2])
+        b_info, b_input, b_target = tuple(b.to(device) for b in batch)
         if pretrained:
             output, _ = model(b_input)
             loss = output.loss
