@@ -76,7 +76,9 @@ def main(file = 'predict',
 
     dataset = pd.read_csv(f'{file}.csv', header=list(range(2))).reset_index(drop=True)
     target = dataset.values[(2*time % len(dataset)) + 1]
-    
+    temp_origin_sr = create_input(target[5:]).to(device)
+    temp_origin_sr = [round(element.item(), 1) for sublist in temp_origin_sr[0][0] for element in sublist]
+
     for i in range(epoch):
         truth_sr = create_input(target[5:]).to(device)
         output, mask_ = model(truth_sr)
@@ -84,11 +86,16 @@ def main(file = 'predict',
         truth_sr = [round(element.item(), 1) for sublist in truth_sr[0][0] for element in sublist]
         pred_sr = insert_info(pred_sr, target[:3], model.patch_size, str(mask_))
         truth_sr = insert_info(truth_sr, target[:3], model.patch_size, str(mask_))
+        
+        origin_sr = temp_origin_sr[:]
+        origin_sr = insert_info(origin_sr, target[:3], model.patch_size, str(mask_))
+        
         p_info, pred_sr, next_truth = process_data(pred_sr, truth_sr)
-        t_info, truth_sr, _ = process_data(truth_sr, truth_sr)
-        plot_heatmap_on_earth_car(np.array(truth_sr), np.array(pred_sr), RECORDPATH, i, p_info)
+        t_info, origin_sr, _ = process_data(origin_sr, origin_sr)
+        plot_heatmap_on_earth_car(np.array(origin_sr), np.array(pred_sr), RECORDPATH, i, p_info)
         next_truth = insert_info(next_truth, target[:3], model.patch_size, str(mask_))
         target = next_truth[:]
+        
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()

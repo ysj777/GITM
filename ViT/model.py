@@ -41,7 +41,8 @@ class ViT(nn.Module):
         elif not self.pretrained:
             # print(np.array(tec.clone().detach().cpu()))
             outputs = self.ViT_mask(tec)
-            return outputs['logits']
+            # print(outputs)
+            return outputs['reconstruction']
 
     def _generate_square_subsequent_mask(self, sz):
         mask = (torch.triu(torch.ones(sz, sz)==1).transpose(0, 1))
