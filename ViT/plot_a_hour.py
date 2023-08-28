@@ -3,7 +3,6 @@ import pandas as pd
 from pathlib import Path
 import argparse
 import matplotlib.pyplot as plt
-import matplotlib.cm as cm
 import cartopy.crs as ccrs
 
 def plot_heatmap_on_earth_car(truth_np, pred_np, RECORDPATH, epoch, info):  # plot castleline with cartopy
@@ -38,9 +37,9 @@ def plot_heatmap_on_earth_car(truth_np, pred_np, RECORDPATH, epoch, info):  # pl
         # if idx == 0:
         #     print(Lon, Lat)
 
-        cmap = cm.get_cmap('jet').copy()
+        cmap = plt.get_cmap('jet')
         cmap.set_under('white')
-        cmap2 = cm.get_cmap('Greens').copy()
+        cmap2 = plt.get_cmap('Greens')
         cmap2.set_under('white')
         ax.pcolormesh(Lon,Lat,
                       np.transpose(data),
@@ -91,14 +90,19 @@ def cal_loss(truth_np, pred_np):
             count += 1
     return round(loss /count, 2)
 
-def process_data(data):
+def process_data(data, pretrained):
     info = data[:3]
-    patch_size = data[3]
-    temp = data[4][1:-1]
-    mask = list(map(int, temp.split(',')))
-    tec_data = data[5:]
+    patch_size = int(data[3])
     patch_count = 72*72//(patch_size*patch_size)
     target_world = [[]for _ in range(patch_count)]
+
+    if pretrained:
+        temp = data[4][1:-1]
+        mask = list(map(int, temp.split(',')))
+        tec_data = data[5:]
+    else:
+        mask = [i for i in range(patch_count)]
+        tec_data = data[4:]
 
     for longitude in range(71):
         for lat in range(72):
@@ -116,17 +120,17 @@ def process_data(data):
     return info, tec_map
 
 def main(args):
-        
     dataset = pd.read_csv(f'{args.file}.csv', header=list(range(2))).reset_index(drop=True)
     
     for i in range(0, len(dataset), 2):
-        p_info, pred_sr = process_data(dataset.values[i])
-        t_info, truth_sr = process_data(dataset.values[i+1])
+        p_info, pred_sr = process_data(dataset.values[i], args.pretrained)
+        t_info, truth_sr = process_data(dataset.values[i+1], args.pretrained)
         plot_heatmap_on_earth_car(np.array(truth_sr), np.array(pred_sr), args.record, 0, p_info)
         input()
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
+    parser.add_argument('--pretrained', '-pt', type=bool, default=False)
     parser.add_argument('-f', '--file', type=str, default='predict')
     parser.add_argument('-r', '--record', type=str, default='./')
     main(parser.parse_args())
