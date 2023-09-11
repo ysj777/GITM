@@ -44,7 +44,7 @@ def plot_heatmap_on_earth_car(truth_np, pred_np, RECORDPATH, epoch, info):  # pl
         ax.pcolormesh(Lon,Lat,
                       np.transpose(data),
                       vmin=0,
-                      vmax=30 if idx != 2 else 5,
+                      vmax=40 if idx != 2 else 5,
                       cmap=cmap if idx != 2 else cmap2,
                     #   cbar_ax = cbar_ax1 if idx == 0 else cbar_ax2 if idx == 2 else None,
                     #   cbar=idx in (0, 2),
@@ -67,11 +67,12 @@ def plot_heatmap_on_earth_car(truth_np, pred_np, RECORDPATH, epoch, info):  # pl
             ax.set_ylabel('longtitude')
         print('lens:',len(ax.get_xticklabels()), len(ax.get_yticklabels()))
 
-    diff_loss = cal_loss(truth_np, pred_np)
+    mae_loss = cal_mae_loss(truth_np, pred_np)
+    rmse_loss = cal_rmse_loss(truth_np, pred_np)
     # fig.subplots_adjust(bottom=0, right=0.9, top=1)
     axes[0].set(title=f'Truth({int(info[0])}, {int(info[1])}, {int(info[2])})')
     axes[1].set(title='Prediction')
-    axes[2].set(title=f'Difference  {diff_loss}')
+    axes[2].set(title=f'Difference  MAE:{mae_loss}, RMSE:{rmse_loss}')
     # fig.canvas.draw()
     fig.tight_layout(rect=[0, 0, .9, 1])
     # fig.tight_layout()
@@ -82,13 +83,20 @@ def plot_heatmap_on_earth_car(truth_np, pred_np, RECORDPATH, epoch, info):  # pl
     fig.suptitle('GTEC MAP', fontsize=16)
     plt.savefig(RECORDPATH + f'prediction_truth_diff_{epoch}.jpg', dpi=1000)
 
-def cal_loss(truth_np, pred_np):
+def cal_mae_loss(truth_np, pred_np):
     loss, count = 0, 0
     for t, p in zip(truth_np, pred_np):
         if t != -1 and p != -1:
             loss += abs(t-p)
             count += 1
     return round(loss /count, 2)
+
+def cal_rmse_loss(truth_np, pred_np):
+    diff = np.subtract(truth_np, pred_np)
+    square = np.square(diff)
+    mse = square.mean()
+    rmse = np.sqrt(mse)
+    return round(rmse, 2)
 
 def process_data(data, pretrained):
     info = data[:3]
@@ -123,10 +131,11 @@ def main(args):
     dataset = pd.read_csv(f'{args.file}.csv', header=list(range(2))).reset_index(drop=True)
     
     for i in range(0, len(dataset), 2):
-        p_info, pred_sr = process_data(dataset.values[i], args.pretrained)
-        t_info, truth_sr = process_data(dataset.values[i+1], args.pretrained)
-        plot_heatmap_on_earth_car(np.array(truth_sr), np.array(pred_sr), args.record, 0, p_info)
-        input()
+        if i == 13050:
+            p_info, pred_sr = process_data(dataset.values[i], args.pretrained)
+            t_info, truth_sr = process_data(dataset.values[i+1], args.pretrained)
+            plot_heatmap_on_earth_car(np.array(truth_sr), np.array(pred_sr), args.record, 0, p_info)
+            input()
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
