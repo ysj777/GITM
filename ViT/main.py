@@ -37,13 +37,13 @@ def main(
         random.shuffle(dataset)
         train_data, valid_data, test_data = dataset[:int(len(dataset)*0.8)], dataset[int(len(dataset)*0.8):int(len(dataset)*0.9)], dataset[int(len(dataset)*0.9):]
     elif not pretrained:
-        train_dataset = TECDataset('../data/train', mode = mode, patch_size = patch_size, target_hour = target_hour, input_history = input_history)
-        valid_dataset = TECDataset('../data/valid', mode = mode, patch_size = patch_size, target_hour = target_hour, input_history = input_history)
-        test_dataset = TECDataset('../data/test', mode = mode, patch_size = patch_size, target_hour = target_hour, input_history = input_history)
+        train_data = TECDataset('../data/train', mode = mode, patch_size = patch_size, target_hour = target_hour, input_history = input_history)
+        valid_data = TECDataset('../data/valid', mode = mode, patch_size = patch_size, target_hour = target_hour, input_history = input_history)
+        test_data = TECDataset('../data/test', mode = mode, patch_size = patch_size, target_hour = target_hour, input_history = input_history)
     
-    train_dataloader = DataLoader(train_dataset, batch_size = batch_size, drop_last = True)
-    valid_dataloader = DataLoader(valid_dataset, batch_size = batch_size, drop_last=True, shuffle = False)
-    test_dataloader = DataLoader(test_dataset, batch_size = 1, shuffle = False)
+    train_dataloader = DataLoader(train_data, batch_size = batch_size, drop_last = True)
+    valid_dataloader = DataLoader(valid_data, batch_size = batch_size, drop_last=True, shuffle = False)
+    test_dataloader = DataLoader(test_data, batch_size = 1, shuffle = False)
     
     print("mask ratio: " + str(mask_ratio))
     print('done\n')

@@ -3,6 +3,7 @@ import torch.nn.functional as F
 import numpy as np
 import torch
 from transformers import ViTConfig, ViTModel, ViTForMaskedImageModeling
+from peft import LoraConfig, get_peft_model
 
 class ViT(nn.Module):
     def __init__(self, in_dim, out_dim, device, patch_size, input_history, num_layers=4, pretrained = False, mask_ratio = 1) -> None:
@@ -24,10 +25,20 @@ class ViT(nn.Module):
                                     encoder_stride = self.patch_size,
                                     patch_size = self.patch_size,)            
         self.ViT_mask = ViTForMaskedImageModeling(self.configuration)
-        self.ViT = ViTModel(self.configuration)
-        self.decoder_layer = nn.TransformerDecoderLayer(d_model = self.hidden_dim, nhead=8)
-        self.transformer_decoder = nn.TransformerDecoder(self.decoder_layer, num_layers=num_layers)
-        self.fc = nn.Linear(self.hidden_dim, self.out_dim, device=device)
+        # self.ViT = ViTModel(self.configuration)
+        # self.decoder_layer = nn.TransformerDecoderLayer(d_model = self.hidden_dim, nhead=8)
+        # self.transformer_decoder = nn.TransformerDecoder(self.decoder_layer, num_layers=num_layers)
+        # self.fc = nn.Linear(self.hidden_dim, self.out_dim, device=device)
+
+        self.lora_config = LoraConfig(
+            r=32,
+            lora_alpha=32,
+            target_modules=["query", "value"],
+            lora_dropout=0.1,
+            bias="lora_only",
+            modules_to_save=["decode_head"],
+        )
+        self.lora_model = get_peft_model(self.ViT_mask, self.lora_config)
 
     def forward(self, tec):
         if self.pretrained:
@@ -39,8 +50,9 @@ class ViT(nn.Module):
             outputs = self.ViT_mask(tec, bool_masked_pos)
             return outputs, list(np.array(masked_indices))
         elif not self.pretrained:
+            
             # print(np.array(tec.clone().detach().cpu()))
-            outputs = self.ViT_mask(tec)
+            outputs = self.lora_model(tec)
             # print(outputs)
             return outputs['reconstruction']
 
