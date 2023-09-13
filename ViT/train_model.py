@@ -21,7 +21,7 @@ def train_model(model, dataloader, valid_dataloader, EPOCH, path_save_model, dev
     device = torch.device(device)
 
     optimizer = torch.optim.AdamW(model.parameters(), lr=5e-3)
-    scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0.3, patience=3)
+    scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0.3, patience=2)
     mse = torch.nn.MSELoss()
     min_val_loss = float('inf')
     eraly_stopping_step = 0
