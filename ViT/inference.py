@@ -4,7 +4,7 @@ import csv
 from tqdm import tqdm
 
 def inference(model, test_dataloader, device, mode, val, val2, best_pth, pretrained, path):
-    input, target, record = [], [], []
+    predict, target, record = [], [], []
     model.load_state_dict(torch.load(best_pth))
     model.eval()
     mse = torch.nn.MSELoss()
@@ -18,8 +18,8 @@ def inference(model, test_dataloader, device, mode, val, val2, best_pth, pretrai
             target_temp = [round(element.item(), 1) for sublist in b_input[0][0][:-1] for element in sublist]
             
             output_temp = insert_info(output_temp, b_info, model.patch_size, pretrained=pretrained, mask_=mask_)
-            target_temp = insert_info(target_temp, b_info, model.patch_size, mask_)
-            input.append(output_temp)
+            target_temp = insert_info(target_temp, b_info, model.patch_size, pretrained=pretrained, mask_=mask_)
+            predict.append(output_temp)
             target.append(target_temp)
             mae_loss = output.loss
             rmse_error = torch.sqrt(mse(output.logits, b_input))
@@ -31,14 +31,15 @@ def inference(model, test_dataloader, device, mode, val, val2, best_pth, pretrai
             
             output_temp = insert_info(output_temp, b_info, model.patch_size, pretrained=pretrained)
             target_temp = insert_info(target_temp, b_info, model.patch_size, pretrained=pretrained)
-            input.append(output_temp)
+            predict.append(output_temp)
             target.append(target_temp)
-            rmse_error = torch.sqrt(mse(output, b_target))#reduction(np.array(output.clone().detach().cpu()), np.array(b_target.clone().detach().cpu()), mode, val, val2)
             mae_loss = 0
-        # total_mae_error += mae_loss.detach().item()
+            rmse_error = torch.sqrt(mse(output, b_target))#reduction(np.array(output.clone().detach().cpu()), np.array(b_target.clone().detach().cpu()), mode, val, val2)
+            
+        total_mae_error += mae_loss.detach().item()
         total_rmse_error += rmse_error.detach().item()
     
-    save_csv(input, target, path, pretrained)
+    save_csv(predict, target, path, pretrained)
     print("Mean Absolute Error:", total_mae_error/step)
     print("Root Mean Square Error:", total_rmse_error/step)
     print("Standard deviation:", np.std(record))
