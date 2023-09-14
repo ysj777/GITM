@@ -1,6 +1,7 @@
 import torch.nn as nn
 import torch.nn.functional as F
 import numpy as np
+import copy
 import torch
 from transformers import ViTConfig, ViTModel, ViTForMaskedImageModeling
 from peft import LoraConfig, get_peft_model
@@ -38,7 +39,8 @@ class ViT(nn.Module):
             bias="lora_only",
             modules_to_save=["decode_head"],
         )
-        self.lora_model = get_peft_model(self.ViT_mask, self.lora_config)
+        self.lora_model = get_peft_model(copy.deepcopy(self.ViT_mask), self.lora_config)
+
 
     def forward(self, tec):
         if self.pretrained:
@@ -50,10 +52,8 @@ class ViT(nn.Module):
             outputs = self.ViT_mask(tec, bool_masked_pos)
             return outputs, list(np.array(masked_indices))
         elif not self.pretrained:
-            
             # print(np.array(tec.clone().detach().cpu()))
             outputs = self.lora_model(tec)
-            # print(outputs)
             return outputs['reconstruction']
 
     def _generate_square_subsequent_mask(self, sz):
