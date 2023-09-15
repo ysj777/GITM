@@ -1,11 +1,11 @@
 import argparse
 import torch
-import numpy as np
+import copy
 from dataloader import TECDataset
 from train_model import train_model
 from inference import inference
 from torch.utils.data import DataLoader
-from model import ViT
+from model import ViT, ViT_Lora
 import random
 import os
 
@@ -40,6 +40,7 @@ def main(
         train_data = TECDataset('../data/train', mode = mode, patch_size = patch_size, target_hour = target_hour, input_history = input_history)
         valid_data = TECDataset('../data/valid', mode = mode, patch_size = patch_size, target_hour = target_hour, input_history = input_history)
         test_data = TECDataset('../data/test', mode = mode, patch_size = patch_size, target_hour = target_hour, input_history = input_history)
+        train_dataset = copy.deepcopy(train_data)
     
     train_dataloader = DataLoader(train_data, batch_size = batch_size, drop_last = True)
     valid_dataloader = DataLoader(valid_data, batch_size = batch_size, drop_last=True, shuffle = False)
@@ -54,6 +55,7 @@ def main(
         best_pth = path_save_model + 'pretrained_model.pth'
     elif not pretrained:
         model.load_state_dict(torch.load(path_save_model + 'pretrained_model.pth'))
+        model = ViT_Lora(model).to(device)
         best_pth = path_save_model + 'best_train_ViTMAE.pth'
     
     if not test_mode:
