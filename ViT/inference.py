@@ -33,7 +33,7 @@ def inference(model, test_dataloader, device, mode, val, val2, best_pth, pretrai
             target_temp = insert_info(target_temp, b_info, model.patch_size, pretrained=pretrained)
             predict.append(output_temp)
             target.append(target_temp)
-            mae_loss = 0
+            mae_loss = torch.tensor(0, dtype=torch.int)
             rmse_error = torch.sqrt(mse(output, b_target))#reduction(np.array(output.clone().detach().cpu()), np.array(b_target.clone().detach().cpu()), mode, val, val2)
             
         total_mae_error += mae_loss.detach().item()
