@@ -55,7 +55,7 @@ def main(
         best_pth = path_save_model + 'pretrained_model.pth'
     elif not pretrained:
         model.load_state_dict(torch.load(path_save_model + 'pretrained_model.pth'))
-        model = ViT_Lora(model).to(device)
+        model = ViT_Lora(model, patch_size).to(device)
         best_pth = path_save_model + 'best_train_ViTMAE.pth'
     
     if not test_mode:

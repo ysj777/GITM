@@ -34,8 +34,9 @@ class ViT(nn.Module):
         return outputs, list(np.array(masked_indices))
     
 class ViT_Lora(nn.Module):
-    def __init__(self, model) -> None:
+    def __init__(self, model, patch_size) -> None:
         super(ViT_Lora, self).__init__()
+        self.patch_size = patch_size
         self.moodel = model
 
         self.lora_config = LoraConfig(
