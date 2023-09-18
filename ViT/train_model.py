@@ -84,7 +84,9 @@ def evalute_model(dataloader, model, device, pretrained):
             loss = output.loss
         else:
             output = model(b_input)
-            loss = torch.sqrt(mse(output, b_target))
+            loss = 0
+            for out, tar in zip(output, b_target):
+                loss += torch.sqrt(mse(out, tar))
         val_loss += loss.detach().item()
     return val_loss / len(dataloader)
 
