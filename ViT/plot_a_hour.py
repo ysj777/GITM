@@ -131,11 +131,11 @@ def main(args):
     dataset = pd.read_csv(f'{args.file}.csv', header=list(range(2))).reset_index(drop=True)
     
     for i in range(0, len(dataset), 2):
-        if i == 13000:
-            p_info, pred_sr = process_data(dataset.values[i], args.pretrained)
-            t_info, truth_sr = process_data(dataset.values[i+1], args.pretrained)
-            plot_heatmap_on_earth_car(np.array(truth_sr), np.array(pred_sr), args.record, 0, p_info)
-            input()
+        # if i == 13000:
+        p_info, pred_sr = process_data(dataset.values[i], args.pretrained)
+        t_info, truth_sr = process_data(dataset.values[i+1], args.pretrained)
+        plot_heatmap_on_earth_car(np.array(truth_sr), np.array(pred_sr), args.record, 0, p_info)
+        input()
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()

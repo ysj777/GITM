@@ -21,7 +21,7 @@ def train_model(model, dataloader, valid_dataloader, EPOCH, path_save_model, dev
     device = torch.device(device)
 
     optimizer = torch.optim.AdamW(model.parameters(), lr=5e-3)
-    scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0.3, patience=2)
+    scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0.3, patience=5)
     mse = torch.nn.MSELoss()
     min_val_loss = float('inf')
     eraly_stopping_step = 0
@@ -38,7 +38,9 @@ def train_model(model, dataloader, valid_dataloader, EPOCH, path_save_model, dev
                 loss = output.loss
             else:
                 output = model(b_input)
-                loss = torch.sqrt(mse(output, b_target))
+                loss = 0
+                for out, tar in zip(output, b_target):
+                    loss += torch.sqrt(mse(out, tar))
             loss.backward()
             torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
             optimizer.step()
@@ -69,7 +71,7 @@ def train_model(model, dataloader, valid_dataloader, EPOCH, path_save_model, dev
         eraly_stopping_step += 1
 
         logger.info(f"Epoch: {epoch:4d}, Training loss: {train_loss:5.3f}, Validation loss: {val_loss:5.3f}")
-    show_loss(train_loss_list, val_loss_list, path_save_model)
+        show_loss(train_loss_list, val_loss_list, path_save_model)
 
 def evalute_model(dataloader, model, device, pretrained):
     model.eval()    
