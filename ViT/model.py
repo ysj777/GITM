@@ -40,18 +40,31 @@ class ViT_Lora(nn.Module):
         self.moodel = model
 
         self.lora_config = LoraConfig(
-            r=32,
-            lora_alpha=32,
+            r=24,
+            lora_alpha=12,
             target_modules=["query", "value"],
             lora_dropout=0.1,
             bias="lora_only",
             modules_to_save=["decode_head"],
         )
         self.lora_model = get_peft_model(self.moodel, self.lora_config)
+        self.print_trainable_parameters(self.lora_model)
 
     def forward(self, tec):
         outputs = self.lora_model(tec)
         return outputs[0]['reconstruction']
+
+    def print_trainable_parameters(self, model):
+        trainable_params = 0
+        all_param = 0
+        for _, param in model.named_parameters():
+            all_param += param.numel()
+            if param.requires_grad:
+                trainable_params += param.numel()
+        print(
+            f"trainable params: {trainable_params} || all params: {all_param} || trainable%: {100 * trainable_params / all_param:.2f}"
+        )
+
     
 if __name__ == '__main__':
     patch_size = 12
