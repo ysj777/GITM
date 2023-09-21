@@ -106,7 +106,10 @@ def process_data(data, pretrained):
 
     if pretrained:
         temp = data[4][1:-1]
-        mask = list(map(int, temp.split(',')))
+        if temp == '':
+            mask = []
+        else:
+            mask = list(map(int, temp.split(',')))
         tec_data = data[5:]
     else:
         mask = [i for i in range(patch_count)]
@@ -115,10 +118,10 @@ def process_data(data, pretrained):
     for longitude in range(71):
         for lat in range(72):
             patch_idx = (longitude//patch_size)*(72//patch_size) + lat//patch_size
-            if patch_idx in mask:
-                target_world[patch_idx].append(tec_data[longitude*72 + lat])
-            else:
-                target_world[patch_idx].append(-1)
+            # if patch_idx in mask:
+            target_world[patch_idx].append(tec_data[longitude*72 + lat])
+            # else:
+            #     target_world[patch_idx].append(-1)
 
     tec_map = []
     for patch in range(0, len(target_world), 72//patch_size):

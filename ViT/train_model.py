@@ -34,8 +34,12 @@ def train_model(model, dataloader, valid_dataloader, EPOCH, path_save_model, dev
             for param in model.parameters(): param.grad = None
             b_info, b_input, b_target = tuple(b.to(device) for b in batch)
             if pretrained:
-                output, _ = model(b_input)
-                loss = output.loss
+                outputs, _ = model(b_input)
+                # loss = output.loss
+                output = outputs.reconstruction      
+                loss = 0
+                for out, tar in zip(output, b_target):
+                    loss += torch.sqrt(mse(out, tar))
             else:
                 output = model(b_input)
                 loss = 0
