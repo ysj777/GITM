@@ -24,7 +24,7 @@ def train_model(model, dataloader, valid_dataloader, EPOCH, path_save_model, dev
     scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0.3, patience=3)
     mse = torch.nn.MSELoss()
     min_val_loss = float('inf')
-    eraly_stopping_step = 0
+    # eraly_stopping_step = 0
     val_loss_list, train_loss_list = [], []
 
     for epoch in range(EPOCH + 1):
@@ -62,17 +62,17 @@ def train_model(model, dataloader, valid_dataloader, EPOCH, path_save_model, dev
                 torch.save(model.state_dict(), path_save_model + 'pretrained_model.pth')
             elif not pretrained:
                 torch.save(model.state_dict(), path_save_model + 'best_train_ViTMAE.pth')
-            eraly_stopping_step = 0
             min_val_loss = val_loss
+            # eraly_stopping_step = 0
         
         # if pretrained and epoch % 10 == 0:
         #     torch.save(model.state_dict(), path_save_model + f'pretrained_model_{epoch}.pth')
         # elif not pretrained and epoch % 10 == 0:
         #     torch.save(model.state_dict(), path_save_model + f'best_train_ViTMAE_{epoch}.pth')
 
-        if eraly_stopping_step > 20: # early stopping
-            break
-        eraly_stopping_step += 1
+        # if eraly_stopping_step > 20: # early stopping
+        #     break
+        # eraly_stopping_step += 1
 
         logger.info(f"Epoch: {epoch:4d}, Training loss: {train_loss:5.3f}, Validation loss: {val_loss:5.3f}")
         show_loss(train_loss_list, val_loss_list, path_save_model)

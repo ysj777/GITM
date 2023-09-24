@@ -132,17 +132,20 @@ def process_data(data, pretrained):
 
 def main(args):
     dataset = pd.read_csv(f'{args.file}.csv', header=list(range(2))).reset_index(drop=True)
-    
+    if dataset.columns[4][0] == 'mask':
+        pretrained = True
+    else:
+        pretrained = False
+
     for i in range(0, len(dataset), 2):
         # if i == 13000:
-        p_info, pred_sr = process_data(dataset.values[i], args.pretrained)
-        t_info, truth_sr = process_data(dataset.values[i+1], args.pretrained)
+        p_info, pred_sr = process_data(dataset.values[i], pretrained)
+        t_info, truth_sr = process_data(dataset.values[i+1], pretrained)
         plot_heatmap_on_earth_car(np.array(truth_sr), np.array(pred_sr), args.record, 0, p_info)
         input()
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('--pretrained', '-pt', type=bool, default=False)
     parser.add_argument('-f', '--file', type=str, default='predict')
     parser.add_argument('-r', '--record', type=str, default='./')
     main(parser.parse_args())

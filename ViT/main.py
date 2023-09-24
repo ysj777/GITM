@@ -53,10 +53,12 @@ def main(
     model = ViT(in_dim, out_dim, device, patch_size, input_history, pretrained = pretrained, mask_ratio = mask_ratio).to(device)
     if pretrained:
         best_pth = path_save_model + 'pretrained_model.pth'
+        path = path_save_model + 'pretrained.csv'
     elif not pretrained:
         model.load_state_dict(torch.load(path_save_model + 'pretrained_model.pth'))
         model = ViT_Lora(model, patch_size).to(device)
         best_pth = path_save_model + 'best_train_ViTMAE.pth'
+        path = path_save_model + 'fine_tune.csv'
     
     if not test_mode:
         train_model(model,
@@ -68,11 +70,11 @@ def main(
                     pretrained = pretrained,
                     batch_size= batch_size)
     
-    inference(model, test_dataloader, device, mode, train_dataset.val, train_dataset.val2, best_pth, pretrained = pretrained, path = path_save_model)
+    inference(model, test_dataloader, device, mode, train_dataset.val, train_dataset.val2, best_pth, pretrained = pretrained, path = path)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--epoch', '-e', type=int, default=500)
+    parser.add_argument('--epoch', '-e', type=int, default=400)
     parser.add_argument('--batch_size', '-b', type=int, default=8)
     parser.add_argument('--patch_size', '-p', type=int, default=4)
     parser.add_argument('--target_hour', '-t', type=int, default=24)
