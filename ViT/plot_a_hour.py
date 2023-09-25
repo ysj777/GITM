@@ -98,7 +98,7 @@ def cal_rmse_loss(truth_np, pred_np):
     rmse = np.sqrt(mse)
     return round(rmse, 2)
 
-def process_data(data, pretrained):
+def process_data(data, pretrained, cal_all):
     info = data[:3]
     patch_size = int(data[3])
     patch_count = 72*72//(patch_size*patch_size)
@@ -118,10 +118,13 @@ def process_data(data, pretrained):
     for longitude in range(71):
         for lat in range(72):
             patch_idx = (longitude//patch_size)*(72//patch_size) + lat//patch_size
-            # if patch_idx in mask:
-            target_world[patch_idx].append(tec_data[longitude*72 + lat])
-            # else:
-            #     target_world[patch_idx].append(-1)
+            if cal_all:
+                target_world[patch_idx].append(tec_data[longitude*72 + lat])
+            else:
+                if patch_idx in mask:
+                    target_world[patch_idx].append(tec_data[longitude*72 + lat])
+                else:
+                    target_world[patch_idx].append(-1)
 
     tec_map = []
     for patch in range(0, len(target_world), 72//patch_size):
@@ -139,8 +142,8 @@ def main(args):
 
     for i in range(0, len(dataset), 2):
         # if i == 13000:
-        p_info, pred_sr = process_data(dataset.values[i], pretrained)
-        t_info, truth_sr = process_data(dataset.values[i+1], pretrained)
+        p_info, pred_sr = process_data(dataset.values[i], pretrained, args.cal_all)
+        t_info, truth_sr = process_data(dataset.values[i+1], pretrained, args.cal_all)
         plot_heatmap_on_earth_car(np.array(truth_sr), np.array(pred_sr), args.record, 0, p_info)
         input()
 
@@ -148,4 +151,5 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('-f', '--file', type=str, default='predict')
     parser.add_argument('-r', '--record', type=str, default='./')
+    parser.add_argument('-ca', '--cal_all', type=bool, default=False)
     main(parser.parse_args())
