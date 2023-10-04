@@ -20,12 +20,6 @@ gdown 1th8IrF5k1O3yDPh8-4WiNbURG27xWpAJ
 unzip save_model.zip
 ```
 
-## 訓練
-### 指令註釋
-``` 
-python main.py -e 訓練幾次 -b 批次數 -p 子圖片的大小 -t 目標時間 -i 輸入時間長度 -m minmax/zscores/None -pt 此模型是否是pretrain
-```
-
 ## File Structure
 ```
 |--- data

@@ -42,6 +42,7 @@ def train_model(model, dataloader, valid_dataloader, EPOCH, path_save_model, dev
                     loss += torch.sqrt(mse(out, tar))
             else:
                 output = model(b_input)
+                b_target = b_target[:, :, :-1].view(b_target.shape[0], -1)
                 loss = 0
                 for out, tar in zip(output, b_target):
                     loss += torch.sqrt(mse(out, tar))

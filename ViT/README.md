@@ -2,9 +2,20 @@
 
 ## 檔案功能
 ### 訓練指令
-假設 Fine-tune 設定 -ma ，代表他要 load 哪一種 pretrained model 的 weight
+Fine-tune 設定 -ma ，代表模型要 load 哪一種 pretrained model 的 weight
 ```
-python main.py -e 訓練幾次 -b 批次數 -p 子圖片的大小 -t 目標時間 -i 輸入時間長度 -m minmax/zscores/None -pt 此模型是否是pretrained -tm 是否為測試階段 -ma 遮住圖片的比例(load 哪種 pretrained model 的 weight)
+python main.py [-e epoch] [-b batch_size] [-p patch_size] [-t target_hour] [-i input_history] [-m mode] [-pt pretrained] [-tm test_mode] [-ma mask_ratio]
+
+optional arguments:
+-e 訓練次數
+-b 批次數
+-p 子圖片的大小
+-t 目標時間
+-i 輸入時間長度
+-m 資料處理要使用何種方式(minmax/zscores/None)
+-pt 此模型是否是pretrained
+-ma 是否為測試階段
+-tm 遮住圖片的比例(load 哪種 pretrained model 的 weight)
 ```
 
 ### 復現圖片

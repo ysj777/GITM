@@ -2,11 +2,12 @@ import pandas as pd
 import numpy as np
 import os
 import torch
+from tqdm import tqdm
 from torch.utils.data import DataLoader
 from sklearn.preprocessing import StandardScaler,MinMaxScaler
 
 class TECDataset:
-    def __init__(self, path, mode = 'maxmin', patch_size = 4, target_hour = 24, input_history = 1) -> None:
+    def __init__(self, path, mode = 'maxmin', patch_size = 4, target_hour = 24, input_history = 1, pretrained = False) -> None:
         self.path = path
         self.patch_size = patch_size
         self.target_hour = target_hour
@@ -14,14 +15,16 @@ class TECDataset:
         self.input_history = input_history
         self.mode = "None"
         self.year = ""
-        self.tec_data = self.get_data()
+        self.pretrained = pretrained
+        self.tec_data = self.read_csv_data()
         if mode == 'maxmin':
             self.val, self.val2 = self.maxmin()
             self.mode = 'max_min'
         elif mode == 'z_score': #z_score
             self.val, self.val2 = self.z_scores()
             self.mode = 'z_score'
-        self.DOY_info, self._input, self.target = self.create_dataset()
+        self.DOY_info, self._input, self.target = [], [], []
+        self.create_dataset()
     
     #Let the data go through normalization
     def maxmin(self) :
@@ -39,7 +42,7 @@ class TECDataset:
         return std[0], mean[0]
 
     #read data from csv
-    def get_data(self):
+    def read_csv_data(self):
         dataset = []
         for file_name in os.listdir(self.path):
             self.year += (file_name.split('.')[0] + ', ')
@@ -57,22 +60,24 @@ class TECDataset:
 
     #Create a dataset that fits the model
     def create_dataset(self) :
-        DOY_info ,_input, target = [], [], []
-        for idx in range(self.input_history-1, len(self.tec_data)):
+        for idx in tqdm(range(self.input_history-1, len(self.tec_data)), dynamic_ncols=True):
             if idx + self.target_hour>= len(self.tec_data):
                 break
             input_history_TEC, target_TEC = [], []
-            if _input:
-                input_history_TEC = _input[-1][1:]
-                input_history_TEC.append(self.create_input(idx))
-            else:
+            if not self._input:
                 for i in range(self.input_history):
                     input_history_TEC.append(self.create_input(i))
+            else:  
+                input_history_TEC = self._input[-1][1:]
+                input_history_TEC.append(self.create_input(idx))
             target_TEC.append(self.create_input(idx+self.target_hour))
-            DOY_info.append(self.tec_data[idx][:3])
-            _input.append(input_history_TEC)
-            target.append(target_TEC)
-        return np.array(DOY_info), np.array(_input), np.array(target)
+            self._input.append(input_history_TEC)
+            self.target.append(target_TEC)
+            if self.pretrained:
+                self.DOY_info.append(self.tec_data[idx][:3])
+            else:
+                self.DOY_info.append(self.tec_data[idx+self.target_hour][:3])
+        return
     
     def create_input(self, idx):
         world = []
@@ -85,7 +90,6 @@ class TECDataset:
         return world
 
     def create_target(self, idx):
-        #[36, 144]
         patch_count = 72*72//(self.patch_size*self.patch_size)
         target_world = [[]for _ in range(patch_count)]
         

@@ -5,7 +5,7 @@ from dataloader import TECDataset
 from train_model import train_model
 from inference import inference
 from torch.utils.data import DataLoader
-from model import ViT, ViT_Lora
+from model import ViT, ViT_Lora, ViT_encoder
 import random
 import os
 
@@ -13,7 +13,7 @@ def main(
     epoch = 500,
     batch_size = 32,
     patch_size = 12,
-    target_hour = 24,
+    target_hour = 1,
     input_history = 1,
     mode = 'None',
     device = 'cpu',
@@ -37,11 +37,11 @@ def main(
         random.shuffle(dataset)
         train_data, valid_data, test_data = dataset[:int(len(dataset)*0.8)], dataset[int(len(dataset)*0.8):int(len(dataset)*0.9)], dataset[int(len(dataset)*0.9):]
     elif not pretrained:
-        train_data = TECDataset('../data/train', mode = mode, patch_size = patch_size, target_hour = target_hour, input_history = input_history)
-        valid_data = TECDataset('../data/valid', mode = mode, patch_size = patch_size, target_hour = target_hour, input_history = input_history)
-        test_data = TECDataset('../data/test', mode = mode, patch_size = patch_size, target_hour = target_hour, input_history = input_history)
+        train_data = TECDataset('../data/train', mode = mode, patch_size = patch_size, target_hour = target_hour, input_history = input_history, pretrained = pretrained)
+        valid_data = TECDataset('../data/valid', mode = mode, patch_size = patch_size, target_hour = target_hour, input_history = input_history, pretrained = pretrained)
+        test_data = TECDataset('../data/test', mode = mode, patch_size = patch_size, target_hour = target_hour, input_history = input_history, pretrained = pretrained)
         train_dataset = copy.deepcopy(train_data)
-    
+
     train_dataloader = DataLoader(train_data, batch_size = batch_size, drop_last = True)
     valid_dataloader = DataLoader(valid_data, batch_size = batch_size, drop_last=True, shuffle = False)
     test_dataloader = DataLoader(test_data, batch_size = 1, shuffle = False)
@@ -50,13 +50,13 @@ def main(
     print('done\n')
 
     in_dim, out_dim = 72, 72
-    model = ViT(in_dim, out_dim, device, patch_size, input_history, pretrained = pretrained, mask_ratio = mask_ratio).to(device)
+    model = ViT(in_dim, out_dim, device, patch_size, pretrained = pretrained, mask_ratio = mask_ratio).to(device)
     if pretrained:
         best_pth = path_save_model + 'pretrained_model.pth'
         path = path_save_model + 'pretrained.csv'
     elif not pretrained:
         model.load_state_dict(torch.load(path_save_model + 'pretrained_model.pth'))
-        model = ViT_Lora(model, patch_size).to(device)
+        model = ViT_encoder(model, patch_size).to(device)
         best_pth = path_save_model + 'best_train_ViTMAE.pth'
         path = path_save_model + 'fine_tune.csv'
     
@@ -77,7 +77,7 @@ if __name__ == '__main__':
     parser.add_argument('--epoch', '-e', type=int, default=400)
     parser.add_argument('--batch_size', '-b', type=int, default=8)
     parser.add_argument('--patch_size', '-p', type=int, default=4)
-    parser.add_argument('--target_hour', '-t', type=int, default=24)
+    parser.add_argument('--target_hour', '-t', type=int, default=1)
     parser.add_argument('--input_history', '-i', type=int, default=1)
     parser.add_argument('--mode', '-m', type=str, default='None')
     parser.add_argument('--pretrained', '-pt', type=bool, default=False)

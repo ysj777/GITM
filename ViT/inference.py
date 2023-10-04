@@ -26,8 +26,9 @@ def inference(model, test_dataloader, device, mode, val, val2, best_pth, pretrai
             record.append(mae_loss.detach().item())
         else:
             output = model(b_input)
-            output_temp = [round(element.item(), 1) for sublist in output[0][0][:-1] for element in sublist]
-            target_temp = [round(element.item(), 1) for sublist in b_target[0][0][:-1] for element in sublist]
+            b_target = b_target[:, :, :-1].view(b_target.shape[0], -1)
+            output_temp = [round(element.item(), 1) for sublist in output for element in sublist]
+            target_temp = [round(element.item(), 1) for sublist in b_target for element in sublist]
             
             output_temp = insert_info(output_temp, b_info, model.patch_size, pretrained=pretrained)
             target_temp = insert_info(target_temp, b_info, model.patch_size, pretrained=pretrained)
