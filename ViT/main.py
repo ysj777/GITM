@@ -60,6 +60,11 @@ def main(
         best_pth = path_save_model + 'best_train_ViTMAE.pth'
         path = path_save_model + 'fine_tune.csv'
 
+    # for name, param in model.named_parameters():
+    #     print("name: ", name)
+    #     print("requires_grad: ", param.requires_grad)
+    # input()
+
     if not test_mode:
         train_model(model,
                     train_dataloader, 

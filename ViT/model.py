@@ -83,7 +83,7 @@ class ViT_encoder(nn.Module):
         self.num_layer = 6
         self.dropout = 0.5
 
-        self.freeze(self.model)
+        # self.freeze(self.model)
         self.encoder_layer = nn.TransformerEncoderLayer(d_model=self.hidden_size, nhead=8,\
                             dropout=self.dropout, norm_first=True, batch_first=True)
         self.transformer_encoder = nn.TransformerEncoder(self.encoder_layer, num_layers=self.num_layer)
@@ -104,7 +104,7 @@ class ViT_encoder(nn.Module):
             time_output.append(vit_last_layer) 
 
         enconder_input = torch.cat(time_output, dim=1)
-        time_output = []
+        time_output.clear()
         trans_output = self.transformer_encoder(enconder_input)
         trans_output = trans_output
         fc_out = F.relu(self.fc(trans_output))
