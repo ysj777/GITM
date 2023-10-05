@@ -39,7 +39,7 @@ class ViT_Lora(nn.Module):
     def __init__(self, model, patch_size) -> None:
         super(ViT_Lora, self).__init__()
         self.patch_size = patch_size
-        self.moodel = model
+        self.model = model
 
         self.lora_config = LoraConfig(
             r=16,
@@ -49,7 +49,7 @@ class ViT_Lora(nn.Module):
             bias="lora_only",
             modules_to_save=["decode_head"],
         )
-        self.lora_model = get_peft_model(self.moodel, self.lora_config)
+        self.lora_model = get_peft_model(self.model, self.lora_config)
         self.print_trainable_parameters(self.lora_model)
 
     def print_trainable_parameters(self, model):
@@ -77,12 +77,13 @@ class ViT_encoder(nn.Module):
     def __init__(self, model, patch_size) -> None:
         super(ViT_encoder, self).__init__()
         self.patch_size = patch_size
-        self.moodel = model
+        self.model = model
         self.output_dim = 71*72
         self.hidden_size = 768
-        self.num_layer = 12
+        self.num_layer = 6
         self.dropout = 0.5
 
+        self.freeze(self.model)
         self.encoder_layer = nn.TransformerEncoderLayer(d_model=self.hidden_size, nhead=8,\
                             dropout=self.dropout, norm_first=True, batch_first=True)
         self.transformer_encoder = nn.TransformerEncoder(self.encoder_layer, num_layers=self.num_layer)
@@ -98,17 +99,23 @@ class ViT_encoder(nn.Module):
         time_output = []
         for time in range(len(tec[0])):
             tec_input = tec[:, time:time+1]
-            vit_ouptut = self.moodel(tec_input)
+            vit_ouptut = self.model(tec_input)
             vit_last_layer = vit_ouptut[0]['hidden_states'][-1][:, :1]
             time_output.append(vit_last_layer) 
 
         enconder_input = torch.cat(time_output, dim=1)
+        time_output = []
         trans_output = self.transformer_encoder(enconder_input)
         trans_output = trans_output
         fc_out = F.relu(self.fc(trans_output))
         pred = fc_out[:,-1]
         return pred
-
+    
+    @staticmethod
+    def freeze(model):
+        for child in model.children():
+            for param in child.parameters():
+                param.requires_grad = False
 
 if __name__ == '__main__':
     patch_size = 12

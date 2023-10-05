@@ -59,7 +59,7 @@ def main(
         model = ViT_encoder(model, patch_size).to(device)
         best_pth = path_save_model + 'best_train_ViTMAE.pth'
         path = path_save_model + 'fine_tune.csv'
-    
+
     if not test_mode:
         train_model(model,
                     train_dataloader, 
