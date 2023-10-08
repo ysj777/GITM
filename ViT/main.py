@@ -49,8 +49,8 @@ def main(
     print("mask ratio: " + str(mask_ratio))
     print('done\n')
 
-    in_dim, out_dim = 72, 72
-    model = ViT(in_dim, out_dim, device, patch_size, pretrained = pretrained, mask_ratio = mask_ratio).to(device)
+    in_dim, out_dim, hid_dim = 72, 72, 256
+    model = ViT(in_dim, out_dim, hid_dim, device, patch_size, pretrained = pretrained, mask_ratio = mask_ratio).to(device)
     if pretrained:
         best_pth = path_save_model + 'pretrained_model.pth'
         path = path_save_model + 'pretrained.csv'

@@ -6,20 +6,19 @@ from peft import LoraConfig, get_peft_model
 import torch.nn.functional as F
 
 class ViT(nn.Module):
-    def __init__(self, in_dim, out_dim, device, patch_size, pretrained = False, mask_ratio = 1) -> None:
+    def __init__(self, in_dim, out_dim, hid_dim, device, patch_size, pretrained = False, mask_ratio = 1) -> None:
         super(ViT, self).__init__()
         self.device = device
         self.in_dim = in_dim
         self.out_dim = out_dim
         self.patch_size = patch_size
-        self.input_history = 1
-        self.hidden_dim = 72
+        self.hidden_dim = hid_dim
         self.pretrained = pretrained
-        self.mask_ratio = mask_ratio / 9
+        self.mask_ratio = mask_ratio / 10
 
         self.configuration = ViTConfig(image_size = 72,
-                                    # hidden_size= self.hidden_dim,
-                                    # intermediate_size = self.hidden_dim*4,
+                                    hidden_size= self.hidden_dim,
+                                    intermediate_size = self.hidden_dim*4,
                                     num_channels = 1, 
                                     encoder_stride = self.patch_size,
                                     patch_size = self.patch_size,
@@ -74,21 +73,21 @@ class ViT_Lora(nn.Module):
         return outputs[0]['reconstruction']
 
 class ViT_encoder(nn.Module):
-    def __init__(self, model, patch_size) -> None:
+    def __init__(self, model, patch_size, hid_dim) -> None:
         super(ViT_encoder, self).__init__()
         self.patch_size = patch_size
         self.model = model
         self.output_dim = 71*72
-        self.hidden_size = 768
-        self.num_layer = 6
+        self.hid_dim = hid_dim
+        self.num_layer = 12
         self.dropout = 0.5
 
-        # self.freeze(self.model)
-        self.encoder_layer = nn.TransformerEncoderLayer(d_model=self.hidden_size, nhead=8,\
+        self.freeze(self.model)
+        self.encoder_layer = nn.TransformerEncoderLayer(d_model=self.hid_dim, nhead=8, dim_feedforward = 4096,\
                             dropout=self.dropout, norm_first=True, batch_first=True)
         self.transformer_encoder = nn.TransformerEncoder(self.encoder_layer, num_layers=self.num_layer)
-        self.fc = nn.Linear(self.hidden_size, self.output_dim)
-        self.init_weights()
+        self.fc = nn.Linear(self.hid_dim, self.output_dim)
+        # self.init_weights()
 
     def init_weights(self):
         initrange = 0.1
