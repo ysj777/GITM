@@ -56,7 +56,7 @@ def main(
         path = path_save_model + 'pretrained.csv'
     elif not pretrained:
         model.load_state_dict(torch.load(path_save_model + 'pretrained_model.pth'))
-        model = ViT_encoder(model, patch_size).to(device)
+        model = ViT_encoder(model, patch_size, hid_dim).to(device)
         best_pth = path_save_model + 'best_train_ViTMAE.pth'
         path = path_save_model + 'fine_tune.csv'
 
