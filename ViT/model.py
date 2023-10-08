@@ -19,6 +19,7 @@ class ViT(nn.Module):
         self.configuration = ViTConfig(image_size = 72,
                                     hidden_size= self.hidden_dim,
                                     intermediate_size = self.hidden_dim*4,
+                                    num_attention_heads = 8,
                                     num_channels = 1, 
                                     encoder_stride = self.patch_size,
                                     patch_size = self.patch_size,
