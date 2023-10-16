@@ -1,6 +1,4 @@
-data/train
-data/valid
-data/test
+data
 
 SwinT/__pycache__
 SwinT/save_model
