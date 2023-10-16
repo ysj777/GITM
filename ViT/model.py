@@ -19,6 +19,7 @@ class ViT(nn.Module):
         self.configuration = ViTConfig(image_size = 72,
                                     hidden_size= self.hidden_dim,
                                     intermediate_size = self.hidden_dim*4,
+                                    num_hidden_layers = 6,
                                     num_attention_heads = 8,
                                     num_channels = 1, 
                                     encoder_stride = self.patch_size,
@@ -83,7 +84,7 @@ class ViT_encoder(nn.Module):
         self.num_layer = 12
         self.dropout = 0.5
 
-        self.freeze(self.model)
+        # self.freeze(self.model)
         self.encoder_layer = nn.TransformerEncoderLayer(d_model=self.hid_dim, nhead=8, dim_feedforward = 4096,\
                             dropout=self.dropout, norm_first=True, batch_first=True)
         self.transformer_encoder = nn.TransformerEncoder(self.encoder_layer, num_layers=self.num_layer)
