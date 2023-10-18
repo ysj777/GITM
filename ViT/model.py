@@ -51,18 +51,6 @@ class ViT_Lora(nn.Module):
             modules_to_save=["decode_head"],
         )
         self.lora_model = get_peft_model(self.model, self.lora_config)
-        self.print_trainable_parameters(self.lora_model)
-
-    def print_trainable_parameters(self, model):
-        trainable_params = 0
-        all_param = 0
-        for _, param in model.named_parameters():
-            all_param += param.numel()
-            if param.requires_grad:
-                trainable_params += param.numel()
-        print(
-            f"trainable params: {trainable_params} || all params: {all_param} || trainable%: {100 * trainable_params / all_param:.2f}"
-        )
 
     def forward(self, tec):
         outputs = self.lora_model(tec)
@@ -81,7 +69,7 @@ class ViT_encoder(nn.Module):
         self.model = model
         self.output_dim = 71*72
         self.hid_dim = hid_dim
-        self.num_layer = 12
+        self.num_layer = 6
         self.dropout = 0.5
 
         # self.freeze(self.model)
@@ -89,6 +77,7 @@ class ViT_encoder(nn.Module):
                             dropout=self.dropout, norm_first=True, batch_first=True)
         self.transformer_encoder = nn.TransformerEncoder(self.encoder_layer, num_layers=self.num_layer)
         self.fc = nn.Linear(self.hid_dim, self.output_dim)
+        print(1234)
         # self.init_weights()
 
     def init_weights(self):

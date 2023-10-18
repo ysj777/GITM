@@ -18,6 +18,7 @@ def same_seeds(seed):
 
 def train_model(model, dataloader, valid_dataloader, EPOCH, path_save_model, device, pretrained, batch_size):
     same_seeds(1234)
+    print_trainable_parameters(model)
     device = torch.device(device)
 
     optimizer = torch.optim.AdamW(filter(lambda p : p.requires_grad, model.parameters()), lr=5e-3)
@@ -95,6 +96,17 @@ def evalute_model(dataloader, model, device, pretrained):
                 loss += torch.sqrt(mse(out, tar))
         val_loss += loss.detach().item()
     return val_loss / len(dataloader)
+
+def print_trainable_parameters(model):
+    trainable_params = 0
+    all_param = 0
+    for _, param in model.named_parameters():
+        all_param += param.numel()
+        if param.requires_grad:
+            trainable_params += param.numel()
+    print(
+        f"trainable params: {trainable_params} || all params: {all_param} || trainable%: {100 * trainable_params / all_param:.2f}"
+    )
 
 def show_loss(train_loss_list, val_loss_list, path):
     y1 = train_loss_list
