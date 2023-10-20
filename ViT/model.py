@@ -77,7 +77,6 @@ class ViT_encoder(nn.Module):
                             dropout=self.dropout, norm_first=True, batch_first=True)
         self.transformer_encoder = nn.TransformerEncoder(self.encoder_layer, num_layers=self.num_layer)
         self.fc = nn.Linear(self.hid_dim, self.output_dim)
-        print(1234)
         # self.init_weights()
 
     def init_weights(self):
