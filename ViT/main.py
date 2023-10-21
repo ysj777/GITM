@@ -37,9 +37,9 @@ def main(
         random.shuffle(dataset)
         train_data, valid_data, test_data = dataset[:int(len(dataset)*0.8)], dataset[int(len(dataset)*0.8):int(len(dataset)*0.9)], dataset[int(len(dataset)*0.9):]
     elif not pretrained:
-        train_data = TECDataset('../data/train', mode = mode, patch_size = patch_size, target_hour = target_hour, input_history = input_history, pretrained = pretrained)
+        train_dataset = TECDataset('../data/train', mode = mode, patch_size = patch_size, target_hour = target_hour, input_history = input_history, pretrained = pretrained)
         dataset = []
-        for data in train_data:
+        for data in train_dataset:
             dataset.append(data)
         random.shuffle(dataset)
         train_data, valid_data = dataset[:int(len(dataset)*0.8)], dataset[int(len(dataset)*0.8):]
@@ -63,11 +63,6 @@ def main(
         model = ViT_encoder(model, patch_size, hid_dim).to(device)
         best_pth = path_save_model + 'best_train_ViTMAE.pth'
         path = path_save_model + 'fine_tune.csv'
-
-    # for name, param in model.named_parameters():
-    #     print("name: ", name)
-    #     print("requires_grad: ", param.requires_grad)
-    # input()
 
     if not test_mode:
         train_model(model,
