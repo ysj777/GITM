@@ -1,7 +1,7 @@
 # GITM
 ## Fine-tuned 結果
 
-![](./prediction_truth_diff_0.jpg)
+![](./ViT/prediction_truth_diff_0.jpg)
 
 ## 安裝套件 (requirements)
 ```
