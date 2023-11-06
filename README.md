@@ -1,4 +1,7 @@
 # GITM
+## Fine-tuned 結果
+
+![](./prediction_truth_diff_0.jpg)
 
 ## 安裝套件 (requirements)
 ```
@@ -9,11 +12,12 @@ pip install -r requirements.txt
 ## 下載資料 
 ```
 cd GITM
-gdown 1zYsnxAEThTpBszQ3yKt4_LvQXnKzs-cw
+gdown 1cz9w9858W8i-_WL7VsFVQ48joJUeMn1K
 unzip data.zip
 ```
 
 ## 下載 ViT 預訓練好的權重檔 
+要是參數量不一致，可能會導致模型無法正確 load 進去，這時就需要重新訓練模型
 ```
 cd GITM/ViT/save_model
 gdown 1th8IrF5k1O3yDPh8-4WiNbURG27xWpAJ
