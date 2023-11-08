@@ -69,7 +69,7 @@ class ViT_encoder(nn.Module):
         self.model = model
         self.output_dim = 71*72
         self.hid_dim = hid_dim
-        self.num_layer = 6
+        self.num_layer = 1
         self.dropout = 0.5
 
         # self.freeze(self.model)

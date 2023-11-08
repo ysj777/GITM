@@ -141,7 +141,6 @@ def main(args):
         pretrained = False
 
     for i in range(0, len(dataset), 2):
-        # if i == 13000:
         p_info, pred_sr = process_data(dataset.values[i], pretrained, args.cal_all)
         t_info, truth_sr = process_data(dataset.values[i+1], pretrained, args.cal_all)
         plot_heatmap_on_earth_car(np.array(truth_sr), np.array(pred_sr), args.record, 0, p_info)
