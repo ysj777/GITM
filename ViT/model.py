@@ -6,7 +6,7 @@ from peft import LoraConfig, get_peft_model
 import torch.nn.functional as F
 
 class ViT(nn.Module):
-    def __init__(self, in_dim, out_dim, hid_dim, device, patch_size, pretrained = False, mask_ratio = 1) -> None:
+    def __init__(self, in_dim, out_dim, hid_dim, device, patch_size, pretrained = False, mask_ratio = 1, mask_type = 'random') -> None:
         super(ViT, self).__init__()
         self.device = device
         self.in_dim = in_dim
@@ -15,6 +15,7 @@ class ViT(nn.Module):
         self.hidden_dim = hid_dim
         self.pretrained = pretrained
         self.mask_ratio = mask_ratio / 10
+        self.mask_type = mask_type
 
         self.configuration = ViTConfig(image_size = 72,
                                     hidden_size= self.hidden_dim,
@@ -28,9 +29,30 @@ class ViT(nn.Module):
         self.ViT_mask = ViTForMaskedImageModeling(self.configuration)
 
     def forward(self, tec):
+        num_column = self.ViT_mask.config.image_size // self.ViT_mask.config.patch_size
         num_patches = (self.ViT_mask.config.image_size // self.ViT_mask.config.patch_size) ** 2
-        num_masked_patches = int(num_patches * self.mask_ratio)
-        masked_indices = torch.randperm(num_patches)[:num_masked_patches]
+
+        if self.mask_type == 'random':
+            num_masked_patches = int(num_patches * self.mask_ratio)
+            masked_indices = torch.randperm(num_patches)[:num_masked_patches]
+        elif self.mask_type == 'column':
+            num_masked_column = round(num_column * self.mask_ratio)
+            masked_column = torch.randperm(num_column)[:num_masked_column]
+            masked_indices = []
+            for row in range(num_column):
+                for col in masked_column:
+                    masked_indices.append(row*num_column + col.item())
+            masked_indices = torch.tensor(masked_indices)
+        elif self.mask_type == 'block':
+            num_masked_column = round(num_column * self.mask_ratio)
+            masked_column = torch.randperm(num_column - num_masked_column + 1)[0]
+            masked_indices = []
+            for row in range(num_column):
+                for col in range(num_masked_column):
+                    masked_indices.append(row*num_column + (masked_column.item() + col))
+            masked_indices = torch.tensor(masked_indices)
+
+        
         bool_masked_pos = torch.zeros(size=(1, num_patches),dtype=torch.bool, device = self.device)
         bool_masked_pos[:, masked_indices] = True
         outputs = self.ViT_mask(tec, bool_masked_pos)

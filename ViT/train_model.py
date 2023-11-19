@@ -37,7 +37,8 @@ def train_model(model, dataloader, valid_dataloader, EPOCH, path_save_model, dev
             if pretrained:
                 outputs, _ = model(b_input)
                 # loss = output.loss
-                output = outputs.reconstruction      
+                output = outputs.reconstruction 
+                # output = outputs.logits 
                 loss = 0
                 for out, tar in zip(output, b_target):
                     loss += torch.sqrt(mse(out, tar))

@@ -22,6 +22,7 @@ def main(
     pretrained = False,
     mask_ratio = 1,
     test_mode = False,
+    mask_type = 'random',
 ):
     if not os.path.isdir(path_save_model):
         os.mkdir(path_save_model)
@@ -51,10 +52,11 @@ def main(
     test_dataloader = DataLoader(test_data, batch_size = 1, shuffle = False)
     
     print("mask ratio: " + str(mask_ratio))
-    print('done\n')
+    print('done')
+    print(f'Mask type : {mask_type}\n')
 
     in_dim, out_dim, hid_dim = 72, 72, 256
-    model = ViT(in_dim, out_dim, hid_dim, device, patch_size, pretrained = pretrained, mask_ratio = mask_ratio).to(device)
+    model = ViT(in_dim, out_dim, hid_dim, device, patch_size, pretrained = pretrained, mask_ratio = mask_ratio, mask_type = mask_type).to(device)
     if pretrained:
         best_pth = path_save_model + 'pretrained_model.pth'
         path = path_save_model + 'pretrained.csv'
@@ -90,6 +92,8 @@ if __name__ == '__main__':
     args = parser.parse_args()
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     print(device)
+    mask_type = 'block'
+
     main(epoch = args.epoch, 
          batch_size = args.batch_size, 
          patch_size = args.patch_size, 
@@ -101,4 +105,5 @@ if __name__ == '__main__':
          target_path = f'patch_{args.patch_size}_mask_ratio_{args.mask_ratio}/',
          pretrained = args.pretrained,
          mask_ratio = args.mask_ratio,
-         test_mode = args.test_mode)
+         test_mode = args.test_mode, 
+         mask_type = mask_type)
