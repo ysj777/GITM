@@ -15,7 +15,13 @@ class ViT(nn.Module):
         self.hidden_dim = hid_dim
         self.pretrained = pretrained
         self.mask_ratio = mask_ratio / 10
-        self.mask_type = mask_type
+        if mask_type == 'column':
+            self.mask_type = mask_type
+        elif mask_type == 'block':
+            self.mask_type = mask_type
+        else: 
+            self.mask_type = 'random'
+        print(f'Mask type : {self.mask_type}\n')
 
         self.configuration = ViTConfig(image_size = 72,
                                     hidden_size= self.hidden_dim,
@@ -51,7 +57,6 @@ class ViT(nn.Module):
                 for col in range(num_masked_column):
                     masked_indices.append(row*num_column + (masked_column.item() + col))
             masked_indices = torch.tensor(masked_indices)
-
         
         bool_masked_pos = torch.zeros(size=(1, num_patches),dtype=torch.bool, device = self.device)
         bool_masked_pos[:, masked_indices] = True

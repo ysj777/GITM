@@ -4,7 +4,7 @@
 ### 訓練指令
 Fine-tune 設定 -ma ，代表模型要 load 哪一種 pretrained model 的 weight
 ```
-python main.py [-e epoch] [-b batch_size] [-p patch_size] [-t target_hour] [-i input_history] [-m mode] [-pt pretrained] [-tm test_mode] [-ma mask_ratio]
+python main.py [-e epoch] [-b batch_size] [-p patch_size] [-t target_hour] [-i input_history] [-m mode] [-pt pretrained] [-tm test_mode] [-ma mask_ratio] [-mt mask_type]
 
 optional arguments:
 -e 訓練次數
@@ -16,6 +16,7 @@ optional arguments:
 -pt 此模型是否是pretrained
 -ma 是否為測試階段
 -tm 遮住圖片的比例(load 哪種 pretrained model 的 weight)
+-mt 遮住圖片的方式為何(random : 隨機, column : 以經度的方式, block : 以區塊的方式)
 ```
 
 ### 復現圖片

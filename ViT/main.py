@@ -53,7 +53,6 @@ def main(
     
     print("mask ratio: " + str(mask_ratio))
     print('done')
-    print(f'Mask type : {mask_type}\n')
 
     in_dim, out_dim, hid_dim = 72, 72, 256
     model = ViT(in_dim, out_dim, hid_dim, device, patch_size, pretrained = pretrained, mask_ratio = mask_ratio, mask_type = mask_type).to(device)
@@ -89,10 +88,10 @@ if __name__ == '__main__':
     parser.add_argument('--pretrained', '-pt', type=bool, default=False)
     parser.add_argument('--mask_ratio', '-ma', type=int, default=1)
     parser.add_argument('--test_mode', '-tm', type=int, default=False)
+    parser.add_argument('--mask_type', '-mt', type=str, default='random')
     args = parser.parse_args()
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     print(device)
-    mask_type = 'block'
 
     main(epoch = args.epoch, 
          batch_size = args.batch_size, 
@@ -106,4 +105,4 @@ if __name__ == '__main__':
          pretrained = args.pretrained,
          mask_ratio = args.mask_ratio,
          test_mode = args.test_mode, 
-         mask_type = mask_type)
+         mask_type = args.mask_type)
