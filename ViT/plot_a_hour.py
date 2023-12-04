@@ -83,6 +83,65 @@ def plot_heatmap_on_earth_car(truth_np, pred_np, RECORDPATH, epoch, info):  # pl
     fig.suptitle('GTEC MAP', fontsize=16)
     plt.savefig(RECORDPATH + f'prediction_truth_diff_{epoch}.jpg', dpi=1000)
 
+def plot_accumulation_loss(data, count):
+    extent = (-180, 175, -87.5, 87.5)
+    # 設置畫布大小
+    fig, axes = plt.subplots(
+        ncols=1,
+        sharex=True,
+        # sharey=True,
+        figsize=(15, 4),
+        # gridspec_kw=dict(width_ratios=[4,4,4,0.4,0.4]),
+        subplot_kw={'projection': ccrs.PlateCarree()},
+        )
+    cbar_ax2 = fig.add_axes([.95, .3, .02, .4])
+    # 繪製heatmap
+    data = data.reshape((71, 72))
+    lat = np.linspace(extent[3],extent[2],data.shape[0])
+    lon = np.linspace(extent[0],extent[1],data.shape[1])
+    axes.set_extent(extent, crs=ccrs.PlateCarree())
+    axes.coastlines(linewidth=0.3, color='black')
+    gl = axes.gridlines(draw_labels=True, color = "None", crs=ccrs.PlateCarree(),)
+    gl.xlabel_style = dict(fontsize=6)
+    gl.ylabel_style = dict(fontsize=6)
+    gl.top_labels = False
+    gl.right_labels = False
+    gl.right_labels = False
+
+    Lat,Lon = np.meshgrid(lat,lon)
+    print(count)
+    cmap2 = plt.get_cmap('Greens')
+    cmap2.set_under('white')
+    axes.pcolormesh(Lon,Lat,
+                    np.transpose(data),
+                    vmin=0,
+                    vmax=count*2,
+                    cmap=cmap2,
+                    )
+    
+    for index, xlabel in enumerate(axes.get_xticklabels()):
+        k = 10
+        vis = index % k == 0
+        xlabel.set_visible(vis)
+    for index, ylabel in enumerate(axes.get_yticklabels()):
+        k = 10
+        vis = index % k == 0
+        ylabel.set_visible(vis)
+    
+    if axes.get_subplotspec().is_last_row():
+        axes.set_xlabel('latitude')
+    if axes.get_subplotspec().is_first_col():
+        axes.set_ylabel('longtitude')
+    print('lens:',len(axes.get_xticklabels()), len(axes.get_yticklabels()))
+
+    axes.set(title=f'accumulation_loss')
+    fig.tight_layout(rect=[0, 0, .9, 1])
+    fig.colorbar(axes.collections[0], cax=cbar_ax2)
+    # 儲存圖片
+    
+    # fig.suptitle('GTEC MAP', fontsize=16)
+    plt.savefig('accumulation_loss.jpg', dpi=1000)
+
 def cal_mae_loss(truth_np, pred_np):
     loss, count = 0, 0
     for t, p in zip(truth_np, pred_np):
@@ -140,11 +199,18 @@ def main(args):
     else:
         pretrained = False
 
+    accumulation_loss = [0 for _ in range(5112)]
+    count = 0
     for i in range(0, len(dataset), 2):
         p_info, pred_sr = process_data(dataset.values[i], pretrained, args.cal_all)
         t_info, truth_sr = process_data(dataset.values[i+1], pretrained, args.cal_all)
-        plot_heatmap_on_earth_car(np.array(truth_sr), np.array(pred_sr), args.record, 0, p_info)
-        input()
+        # plot_heatmap_on_earth_car(np.array(truth_sr), np.array(pred_sr), args.record, 0, p_info)
+        accumulation_loss += abs(np.array(truth_sr)-np.array(pred_sr))
+        count += 1
+        # if i == 20:
+        #     break
+        # input()
+    plot_accumulation_loss(accumulation_loss, count)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
