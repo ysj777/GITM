@@ -2,6 +2,7 @@ import numpy as np
 import pandas as pd
 from pathlib import Path
 import argparse
+import os
 import matplotlib.pyplot as plt
 import cartopy.crs as ccrs
 from tqdm import tqdm
@@ -141,7 +142,7 @@ def plot_accumulation_loss(data, count):
     # 儲存圖片
     
     # fig.suptitle('GTEC MAP', fontsize=16)
-    plt.savefig('accumulation_loss.jpg', dpi=1000)
+    plt.savefig('pictures/accumulation_loss.jpg', dpi=1000)
 
 def cal_mae_loss(truth_np, pred_np):
     loss, count = 0, 0
@@ -216,6 +217,10 @@ def main(args):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('-f', '--file', type=str, default='predict')
-    parser.add_argument('-r', '--record', type=str, default='./')
+    parser.add_argument('-r', '--record', type=str, default='./pictures/')
     parser.add_argument('-ca', '--cal_all', type=bool, default=False)
-    main(parser.parse_args())
+
+    args = parser.parse_args()
+    if not os.path.isdir(args.record):
+        os.mkdir(args.record)
+    main(args)

@@ -8,4 +8,5 @@ SwinT/*.csv
 ViT/__pycache__
 ViT/save_model
 ViT/convergence_loss
+ViT/pictures
 ViT/*.csv
