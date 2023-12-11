@@ -52,25 +52,25 @@ def main(
     test_dataloader = DataLoader(test_data, batch_size = 1, shuffle = False)
     
     print("mask ratio: " + str(mask_ratio))
-    print('done')
 
     in_dim, out_dim, hid_dim = 72, 72, 256
     model = ViT(in_dim, out_dim, hid_dim, device, patch_size, pretrained = pretrained, mask_ratio = mask_ratio, mask_type = mask_type).to(device)
     if pretrained:
-        best_pth = path_save_model + 'pretrained_model.pth'
-        path = path_save_model + 'pretrained.csv'
+        best_pth = path_save_model + f'pretrained_model_{mask_type}.pth'
+        path = path_save_model + f'pretrained_{mask_type}.csv'
     elif not pretrained:
-        model.load_state_dict(torch.load(path_save_model + 'pretrained_model.pth'))
+        model.load_state_dict(torch.load(path_save_model + f'pretrained_model_{mask_type}.pth'))
         model = ViT_encoder(model, patch_size, hid_dim).to(device)
-        best_pth = path_save_model + 'best_train_ViTMAE.pth'
-        path = path_save_model + 'fine_tune.csv'
+        best_pth = path_save_model + f'best_train_ViTMAE_{mask_type}.pth'
+        path = path_save_model + f'fine_tune_{mask_type}.csv'
 
     if not test_mode:
         train_model(model,
                     train_dataloader, 
                     valid_dataloader,
                     EPOCH = epoch, 
-                    path_save_model = path_save_model, 
+                    path_save_model = path_save_model,
+                    best_pth = best_pth,
                     device = device, 
                     pretrained = pretrained,
                     batch_size= batch_size)

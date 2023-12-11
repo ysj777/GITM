@@ -4,6 +4,7 @@ from pathlib import Path
 import argparse
 import matplotlib.pyplot as plt
 import cartopy.crs as ccrs
+from tqdm import tqdm
 
 def plot_heatmap_on_earth_car(truth_np, pred_np, RECORDPATH, epoch, info):  # plot castleline with cartopy
         
@@ -201,15 +202,15 @@ def main(args):
 
     accumulation_loss = [0 for _ in range(5112)]
     count = 0
-    for i in range(0, len(dataset), 2):
+    for i in tqdm(range(0, len(dataset), 2)):
         p_info, pred_sr = process_data(dataset.values[i], pretrained, args.cal_all)
         t_info, truth_sr = process_data(dataset.values[i+1], pretrained, args.cal_all)
-        # plot_heatmap_on_earth_car(np.array(truth_sr), np.array(pred_sr), args.record, 0, p_info)
+        plot_heatmap_on_earth_car(np.array(truth_sr), np.array(pred_sr), args.record, 0, p_info)
         accumulation_loss += abs(np.array(truth_sr)-np.array(pred_sr))
         count += 1
         # if i == 20:
         #     break
-        # input()
+        input()
     plot_accumulation_loss(accumulation_loss, count)
 
 if __name__ == "__main__":
