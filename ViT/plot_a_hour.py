@@ -194,6 +194,30 @@ def process_data(data, pretrained, cal_all):
                 tec_map += target_world[patch + lon_idx][lat_idx*patch_size:(lat_idx+1)*patch_size]
     return info, tec_map
 
+def history_line(history_rmse, history_day):
+    path = '../data/test'
+    for file_name in os.listdir(path):
+        data = pd.read_csv(os.path.join(path, file_name), skiprows= 5, usecols = [6])
+        dst_data = data.dropna(axis=0, how='any')
+        dst_data = dst_data.values
+        dst_data = np.array(dst_data).flatten()
+    
+    fig, ax1 = plt.subplots()
+    plt.title('RMSE')
+    plt.xlabel('hour')
+    ax2 = ax1.twinx()
+
+    ax1.set_ylabel('RMSE', color='red')
+    ax1.plot(range(len(history_rmse)), history_rmse, color='red', alpha=0.75)
+    ax1.tick_params(axis='y', labelcolor='red')
+
+    ax2.set_ylabel('DST', color='skyblue')
+    ax2.plot(range(len(dst_data)), dst_data, color='skyblue', alpha=1)
+    ax2.tick_params(axis='y', labelcolor='skyblue')
+    fig.tight_layout()
+    plt.savefig('pictures/RMSE_acc.jpg', dpi=1000)
+    plt.show()
+
 def main(args):
     dataset = pd.read_csv(f'{args.file}.csv', header=list(range(2))).reset_index(drop=True)
     if dataset.columns[4][0] == 'mask':
@@ -202,17 +226,22 @@ def main(args):
         pretrained = False
 
     accumulation_loss = [0 for _ in range(5112)]
+    history_rmse, history_day = [], []
     count = 0
     for i in tqdm(range(0, len(dataset), 2)):
         p_info, pred_sr = process_data(dataset.values[i], pretrained, args.cal_all)
         t_info, truth_sr = process_data(dataset.values[i+1], pretrained, args.cal_all)
-        plot_heatmap_on_earth_car(np.array(truth_sr), np.array(pred_sr), args.record, 0, p_info)
-        accumulation_loss += abs(np.array(truth_sr)-np.array(pred_sr))
-        count += 1
+        # plot_heatmap_on_earth_car(np.array(truth_sr), np.array(pred_sr), args.record, 0, p_info)
+        rmse_loss = cal_rmse_loss(np.array(truth_sr), np.array(pred_sr))
+        history_rmse.append(rmse_loss)
+        history_day.append(i//2)
+        # accumulation_loss += abs(np.array(truth_sr)-np.array(pred_sr))
+        # count += 1
         # if i == 20:
         #     break
-        input()
-    plot_accumulation_loss(accumulation_loss, count)
+        # input()
+    history_line(history_rmse, history_day)
+    # plot_accumulation_loss(accumulation_loss, count)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
