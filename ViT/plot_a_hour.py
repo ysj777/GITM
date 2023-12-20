@@ -194,16 +194,9 @@ def process_data(data, pretrained, cal_all):
                 tec_map += target_world[patch + lon_idx][lat_idx*patch_size:(lat_idx+1)*patch_size]
     return info, tec_map
 
-def history_line(history_rmse, history_day):
-    path = '../data/test'
-    for file_name in os.listdir(path):
-        data = pd.read_csv(os.path.join(path, file_name), skiprows= 5, usecols = [6])
-        dst_data = data.dropna(axis=0, how='any')
-        dst_data = dst_data.values
-        dst_data = np.array(dst_data).flatten()
-    
+def history_line(history_rmse, history_day, dst_data, year):
     fig, ax1 = plt.subplots()
-    plt.title('RMSE')
+    plt.title(f'{year} RMSE')
     plt.xlabel('hour')
     ax2 = ax1.twinx()
 
@@ -212,10 +205,10 @@ def history_line(history_rmse, history_day):
     ax1.tick_params(axis='y', labelcolor='red')
 
     ax2.set_ylabel('DST', color='skyblue')
-    ax2.plot(range(len(dst_data)), dst_data, color='skyblue', alpha=1)
+    ax2.plot(range(len(dst_data[12:])), dst_data[12:], color='skyblue', alpha=1)
     ax2.tick_params(axis='y', labelcolor='skyblue')
     fig.tight_layout()
-    plt.savefig('pictures/RMSE_acc.jpg', dpi=1000)
+    plt.savefig(f'pictures/{year}_RMSE_acc.jpg', dpi=1000)
     plt.show()
 
 def main(args):
@@ -225,8 +218,17 @@ def main(args):
     else:
         pretrained = False
 
+    path = '../data/test'
+    for file_name in os.listdir(path):
+        year = file_name.split('.')[0]
+        data = pd.read_csv(os.path.join(path, file_name), skiprows= 5, usecols = [6])
+        dst_data = data.dropna(axis=0, how='any')
+        dst_data = dst_data.values
+        dst_data = np.array(dst_data).flatten()
+
     accumulation_loss = [0 for _ in range(5112)]
     history_rmse, history_day = [], []
+    flag = False
     count = 0
     for i in tqdm(range(0, len(dataset), 2)):
         p_info, pred_sr = process_data(dataset.values[i], pretrained, args.cal_all)
@@ -240,7 +242,15 @@ def main(args):
         # if i == 20:
         #     break
         # input()
-    history_line(history_rmse, history_day)
+        try:
+            if int(year) != int(p_info[0]):
+                raise ValueError(f'test data({year}年) 的檔案與 predict({int(p_info[0])}年) 的檔案年份不一致')
+            flag = True
+        except ValueError as ve:
+            print(f'異常: {ve}')
+            break
+    if flag and not pretrained:
+        history_line(history_rmse, history_day, dst_data, year)
     # plot_accumulation_loss(accumulation_loss, count)
 
 if __name__ == "__main__":
