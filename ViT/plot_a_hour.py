@@ -6,6 +6,7 @@ import os
 import matplotlib.pyplot as plt
 import cartopy.crs as ccrs
 from tqdm import tqdm
+from collections import defaultdict
 
 def plot_heatmap_on_earth_car(truth_np, pred_np, RECORDPATH, epoch, info):  # plot castleline with cartopy
         
@@ -194,7 +195,7 @@ def process_data(data, pretrained, cal_all):
                 tec_map += target_world[patch + lon_idx][lat_idx*patch_size:(lat_idx+1)*patch_size]
     return info, tec_map
 
-def history_line(history_rmse, history_day, dst_data, year):
+def history_line(history_rmse, space_data, space_weather, year):
     fig, ax1 = plt.subplots()
     plt.title(f'{year} RMSE')
     plt.xlabel('hour')
@@ -204,12 +205,26 @@ def history_line(history_rmse, history_day, dst_data, year):
     ax1.plot(range(len(history_rmse)), history_rmse, color='red', alpha=0.75)
     ax1.tick_params(axis='y', labelcolor='red')
 
-    ax2.set_ylabel('DST', color='skyblue')
-    ax2.plot(range(len(dst_data[12:])), dst_data[12:], color='skyblue', alpha=1)
+    ax2.set_ylabel(space_weather, color='skyblue')
+    ax2.plot(range(len(space_data[12:])), space_data[12:], color='skyblue', alpha=1)
     ax2.tick_params(axis='y', labelcolor='skyblue')
     fig.tight_layout()
-    plt.savefig(f'pictures/{year}_RMSE_acc.jpg', dpi=1000)
-    plt.show()
+    plt.savefig(f'pictures/{year}_RMSE_{space_weather}_acc.jpg', dpi=1000)
+    # plt.show()
+
+def process_space_data(path):
+    space_weather_data = defaultdict(list)
+    for file_name in os.listdir(path):
+        year = file_name.split('.')[0]
+        data = pd.read_csv(os.path.join(path, file_name), skiprows= 5, usecols = [4, 5, 6, 7, 8])
+        data = data.dropna(axis=0, how='any')
+        data = data.values
+    space_weather_data['Kp'] = np.array(data[:, 0]).flatten()
+    space_weather_data['R'] = np.array(data[:, 1]).flatten()
+    space_weather_data['Dst'] = np.array(data[:, 2]).flatten()
+    space_weather_data['Ap'] = np.array(data[:, 3]).flatten()
+    space_weather_data['f10.7'] = np.array(data[:, 4]).flatten()
+    return year, space_weather_data
 
 def main(args):
     dataset = pd.read_csv(f'{args.file}.csv', header=list(range(2))).reset_index(drop=True)
@@ -217,15 +232,9 @@ def main(args):
         pretrained = True
     else:
         pretrained = False
-
-    path = '../data/test'
-    for file_name in os.listdir(path):
-        year = file_name.split('.')[0]
-        data = pd.read_csv(os.path.join(path, file_name), skiprows= 5, usecols = [6])
-        dst_data = data.dropna(axis=0, how='any')
-        dst_data = dst_data.values
-        dst_data = np.array(dst_data).flatten()
-
+    
+    year, space_weather_data = process_space_data('../data/test')
+    
     accumulation_loss = [0 for _ in range(5112)]
     history_rmse, history_day = [], []
     flag = False
@@ -239,8 +248,8 @@ def main(args):
         history_day.append(i//2)
         # accumulation_loss += abs(np.array(truth_sr)-np.array(pred_sr))
         # count += 1
-        # if i == 20:
-        #     break
+        if i == 20:
+            break
         # input()
         try:
             if int(year) != int(p_info[0]):
@@ -250,7 +259,8 @@ def main(args):
             print(f'異常: {ve}')
             break
     if flag and not pretrained:
-        history_line(history_rmse, history_day, dst_data, year)
+        for space_weather, space_data in space_weather_data.items():
+            history_line(history_rmse, space_data, space_weather, year)
     # plot_accumulation_loss(accumulation_loss, count)
 
 if __name__ == "__main__":
