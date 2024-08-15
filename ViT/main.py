@@ -61,8 +61,8 @@ def main(
     elif not pretrained:
         model.load_state_dict(torch.load(path_save_model + f'pretrained_model_{mask_type}.pth'))
         model = ViT_encoder(model, patch_size, hid_dim).to(device)
-        best_pth = path_save_model + f'best_train_ViTMAE_{mask_type}.pth'
-        path = path_save_model + f'fine_tune_{mask_type}.csv'
+        best_pth = path_save_model + f'best_train_ViTMAE_{mask_type}_{target_hour}.pth'
+        path = path_save_model + f'fine_tune_{mask_type}_{target_hour}_2020.csv'
 
     if not test_mode:
         train_model(model,

@@ -4,7 +4,7 @@ from pathlib import Path
 import argparse
 import os
 import matplotlib.pyplot as plt
-import cartopy.crs as ccrs
+#import cartopy.crs as ccrs
 from tqdm import tqdm
 from collections import defaultdict
 
@@ -196,8 +196,9 @@ def process_data(data, pretrained, cal_all):
     return info, tec_map
 
 def history_line(history_rmse, space_data, space_weather, year):
+
     fig, ax1 = plt.subplots()
-    plt.title(f'{year} RMSE')
+    plt.title(f'2020-2021 RMSE')
     plt.xlabel('hour')
     ax2 = ax1.twinx()
 
@@ -206,25 +207,41 @@ def history_line(history_rmse, space_data, space_weather, year):
     ax1.tick_params(axis='y', labelcolor='red')
 
     ax2.set_ylabel(space_weather, color='skyblue')
-    ax2.plot(range(len(space_data[12:])), space_data[12:], color='skyblue', alpha=1)
+    ax2.plot(range(len(space_data[240:])), space_data[240:], color='skyblue', alpha=1)
     ax2.tick_params(axis='y', labelcolor='skyblue')
     fig.tight_layout()
-    plt.savefig(f'pictures/{year}_RMSE_{space_weather}_acc.jpg', dpi=1000)
+    plt.savefig(f'pictures/2020-2021_RMSE_{space_weather}_acc.jpg', dpi=1000)
     # plt.show()
+
+
 
 def process_space_data(path):
     space_weather_data = defaultdict(list)
+    dataset= []
     for file_name in os.listdir(path):
         year = file_name.split('.')[0]
         data = pd.read_csv(os.path.join(path, file_name), skiprows= 5, usecols = [4, 5, 6, 7, 8])
         data = data.dropna(axis=0, how='any')
         data = data.values
-    space_weather_data['Kp'] = np.array(data[:, 0]).flatten()
-    space_weather_data['R'] = np.array(data[:, 1]).flatten()
-    space_weather_data['Dst'] = np.array(data[:, 2]).flatten()
-    space_weather_data['Ap'] = np.array(data[:, 3]).flatten()
-    space_weather_data['f10.7'] = np.array(data[:, 4]).flatten()
+        dataset.append(data)
+    tec_data = dataset[0]
+    for i in range(1, len(dataset)):
+        tec_data = np.vstack((tec_data,dataset[i]))
+        
+    space_weather_data['Kp'] = np.array(tec_data[:, 0]).flatten()
+    space_weather_data['R'] = np.array(tec_data[:, 1]).flatten()
+    space_weather_data['Dst'] = np.array(tec_data[:, 2]).flatten()
+    space_weather_data['Ap'] = np.array(tec_data[:, 3]).flatten()
+    space_weather_data['f10.7'] = np.array(tec_data[:, 4]).flatten()
     return year, space_weather_data
+
+def scatter_plot(history_rmse, space_data, space_weather, year):
+
+    plt.scatter(history_rmse, space_data[240:])
+    plt.title('2020-2021 RMSE')
+    plt.xlabel(space_weather, color='skyblue')
+    plt.ylabel('RMSE', color='red')
+    plt.savefig(f'pictures/2020-2021_RMSE_{space_weather}_sactter_acc.jpg', dpi=1000)
 
 def main(args):
     dataset = pd.read_csv(f'{args.file}.csv', header=list(range(2))).reset_index(drop=True)
@@ -237,9 +254,9 @@ def main(args):
     
     accumulation_loss = [0 for _ in range(5112)]
     history_rmse, history_day = [], []
-    flag = False
+    flag = True
     count = 0
-    for i in tqdm(range(0, len(dataset), 2)):
+    for i in tqdm(range(0, len(dataset)-1, 2)):
         p_info, pred_sr = process_data(dataset.values[i], pretrained, args.cal_all)
         t_info, truth_sr = process_data(dataset.values[i+1], pretrained, args.cal_all)
         # plot_heatmap_on_earth_car(np.array(truth_sr), np.array(pred_sr), args.record, 0, p_info)
@@ -248,8 +265,8 @@ def main(args):
         history_day.append(i//2)
         # accumulation_loss += abs(np.array(truth_sr)-np.array(pred_sr))
         # count += 1
-        if i == 20:
-            break
+        """if i == 20:
+            #break
         # input()
         try:
             if int(year) != int(p_info[0]):
@@ -258,9 +275,16 @@ def main(args):
         except ValueError as ve:
             print(f'異常: {ve}')
             break
+        """
+    df = pd.DataFrame(history_rmse)
+    df.to_csv("Rmse.csv")
+    
     if flag and not pretrained:
         for space_weather, space_data in space_weather_data.items():
             history_line(history_rmse, space_data, space_weather, year)
+            #scatter_plot(history_rmse, space_data, space_weather, year)
+
+
     # plot_accumulation_loss(accumulation_loss, count)
 
 if __name__ == "__main__":

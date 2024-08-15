@@ -2,7 +2,6 @@ import torch.nn as nn
 import numpy as np
 import torch
 from transformers import ViTConfig, ViTForMaskedImageModeling
-from peft import LoraConfig, get_peft_model
 import torch.nn.functional as F
 
 class ViT(nn.Module):
@@ -26,7 +25,7 @@ class ViT(nn.Module):
         self.configuration = ViTConfig(image_size = 72,
                                     hidden_size= self.hidden_dim,
                                     intermediate_size = self.hidden_dim*4,
-                                    num_hidden_layers = 6,
+                                    num_hidden_layers = 3,
                                     num_attention_heads = 8,
                                     num_channels = 1, 
                                     encoder_stride = self.patch_size,
