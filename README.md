@@ -12,7 +12,7 @@ pip install -r requirements.txt
 ## 下載資料 
 ```
 cd GITM
-gdown 1cz9w9858W8i-_WL7VsFVQ48joJUeMn1K
+gdown https://drive.google.com/file/d/1YHLb72Y8UdSAyclbujPF3UjLF4IYZ39d/view?usp=sharing
 unzip data.zip
 ```
 
