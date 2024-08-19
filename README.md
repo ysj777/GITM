@@ -12,12 +12,13 @@ pip install -r requirements.txt
 ## 下載資料 
 ```
 cd GITM
-gdown https://drive.google.com/file/d/1YHLb72Y8UdSAyclbujPF3UjLF4IYZ39d/view?usp=sharing
+gdown https://drive.google.com/uc?id=1YHLb72Y8UdSAyclbujPF3UjLF4IYZ39d
 unzip data.zip
 ```
 
-## 下載 ViT 預訓練好的權重檔 
-要是參數量不一致，可能會導致模型無法正確 load 進去，這時就需要重新訓練模型
+## ~~下載 ViT 預訓練好的權重檔~~
+~~要是參數量不一致，可能會導致模型無法正確 load 進去，這時就需要重新訓練模型~~
+這步跳過
 ```
 cd GITM/ViT/save_model
 gdown 1th8IrF5k1O3yDPh8-4WiNbURG27xWpAJ
